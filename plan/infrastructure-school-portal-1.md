@@ -267,7 +267,7 @@ The current delivery has completed all planned tasks through TASK-050 and is pro
 | TASK-058 | Modernize Admission fill form with schema-based validation (Zod + React Hook Form resolver), inline field errors, accessible error summary, conditional fields, and masked input for phone/date fields.                         | ✅        | 2026-06-28 |
 | TASK-059 | Add application management enhancements: bulk status actions, reviewer assignment, note history, advanced filters (status/date/class), and CSV export with selected columns.                                                     | ✅        | 2026-06-28 |
 | TASK-060 | Add backend admission workflow extensions for reviewer notes, state transition rules, and audit logging of decision actions (pending -> under_review -> accepted/rejected/waitlisted).                                           | ✅        | 2026-06-28 |
-| TASK-061 | Add admission-focused quality gates: validation rule unit tests, role-based integration tests, and e2e coverage for new submission + admin management via side navigation.                                                      | ⬜        | -    |
+| TASK-061 | Add admission-focused quality gates: validation rule unit tests, role-based integration tests, and e2e coverage for new submission + admin management via side navigation.                                                      | ✅        | 2026-06-28 |
 
 ## 11. Suggested Priority Order
 
