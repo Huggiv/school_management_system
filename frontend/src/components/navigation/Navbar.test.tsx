@@ -16,7 +16,7 @@ describe("Navbar", () => {
 
     expect(screen.getByText("Home")).toBeInTheDocument();
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
-    expect(screen.getByText("Admission")).toBeInTheDocument();
     expect(screen.getByText("Login")).toBeInTheDocument();
+    expect(screen.queryByText("Admission")).not.toBeInTheDocument();
   });
 });

@@ -9,14 +9,11 @@ const NAV_ITEMS = [
   { to: "/grade", label: "Grade" },
   { to: "/assignments", label: "Assignments" },
   { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
 ];
 
 const ADMIN_ADMISSION_ACTIONS = [
   { to: "/admission/new", label: "New Admission" },
   { to: "/admission/manage", label: "Application Management" },
-  { to: "/admission/review", label: "Review Queue" },
-  { to: "/admission/history", label: "Decision History" },
   { to: "/admission/reports", label: "Reports" },
 ];
 
@@ -49,7 +46,7 @@ export function Navbar() {
         </button>
 
         <nav className={`main-nav ${open ? "show" : ""}`}>
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.slice(0, 1).map((item) => (
             <NavLink
               className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
               key={item.to}
@@ -60,13 +57,13 @@ export function Navbar() {
             </NavLink>
           ))}
 
-          <div className="action-dropdown">
-            <button className="nav-link action-dropdown-trigger" type="button">
-              Admission Actions
-            </button>
-            <div className="action-dropdown-menu" role="menu" aria-label="Admission actions menu">
-              {isAuthenticated ? (
-                admissionActions.map((item) => (
+          {isAuthenticated && isAdminOpsUser ? (
+            <div className="action-dropdown">
+              <button className="nav-link action-dropdown-trigger" type="button">
+                Admission
+              </button>
+              <div className="action-dropdown-menu" role="menu" aria-label="Admission actions menu">
+                {admissionActions.map((item) => (
                   <NavLink
                     className="action-dropdown-item"
                     key={item.to}
@@ -75,34 +72,53 @@ export function Navbar() {
                   >
                     {item.label}
                   </NavLink>
-                ))
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {NAV_ITEMS.slice(1).map((item) => (
+            <NavLink
+              className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+              key={item.to}
+              onClick={() => setOpen(false)}
+              to={item.to}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+
+          <div className="action-dropdown account-dropdown">
+            <button className="nav-link action-dropdown-trigger account-dropdown-trigger" type="button">
+              <span className="login-icon" aria-hidden="true" />
+              <span>Account</span>
+            </button>
+            <div className="action-dropdown-menu" role="menu" aria-label="Account actions menu">
+              {isAuthenticated ? (
+                <>
+                  <NavLink className="action-dropdown-item" onClick={() => setOpen(false)} to="/profile">
+                    Profile
+                  </NavLink>
+                  <button
+                    className="action-dropdown-item action-dropdown-button"
+                    onClick={logout}
+                    type="button"
+                  >
+                    Logout ({user?.role})
+                  </button>
+                </>
               ) : (
-                <NavLink className="action-dropdown-item" onClick={() => setOpen(false)} to="/admission">
-                  Admission
-                </NavLink>
+                <>
+                  <NavLink className="action-dropdown-item" onClick={() => setOpen(false)} to="/login">
+                    Login
+                  </NavLink>
+                  <NavLink className="action-dropdown-item" onClick={() => setOpen(false)} to="/signup">
+                    Sign up
+                  </NavLink>
+                </>
               )}
             </div>
           </div>
-
-          {isAuthenticated ? (
-            <>
-              <NavLink className="nav-link" onClick={() => setOpen(false)} to="/profile">
-                Profile
-              </NavLink>
-              <button className="auth-btn" onClick={logout} type="button">
-                Logout ({user?.role})
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink className="nav-link" onClick={() => setOpen(false)} to="/signup">
-                Sign up
-              </NavLink>
-              <NavLink className="auth-btn" onClick={() => setOpen(false)} to="/login">
-                Login
-              </NavLink>
-            </>
-          )}
         </nav>
       </div>
     </header>

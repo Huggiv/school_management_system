@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCreateAdmission } from "@/features/admissions/hooks/useCreateAdmission";
 import { admissionSchema, type AdmissionFormSchemaValues } from "@/features/admissions/validation/admissionSchema";
+import { mapApiError } from "@/lib/api/client";
 
 function formatPhoneInput(value: string): string {
   const raw = value.replace(/[^\d+]/g, "").slice(0, 15);
@@ -58,6 +59,18 @@ export function AdmissionApplicationForm() {
         });
       })}
     >
+      {createAdmission.isSuccess ? (
+        <div className="form-success-summary" role="status" aria-live="polite">
+          <strong>Application submitted successfully.</strong>
+        </div>
+      ) : null}
+
+      {createAdmission.isError ? (
+        <div className="form-error-summary" role="alert">
+          <strong>Submission failed.</strong> {mapApiError(createAdmission.error).message}
+        </div>
+      ) : null}
+
       {Object.keys(errors).length > 0 && (
         <div
           ref={errorSummaryRef}
