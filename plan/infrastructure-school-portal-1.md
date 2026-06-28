@@ -57,13 +57,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-002**: Bootstrap backend application core with configuration, app lifecycle, and health endpoints.
 - **Completion Criteria**: FastAPI app starts locally, OpenAPI is accessible, and `/health` and `/ready` endpoints return 200.
 
-| Task     | Description                                                                                                                        | Completed | Date |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-006 | Create `backend/app/main.py` with `create_app()` function, CORS middleware, router registration, and startup/shutdown event hooks. |           |      |
-| TASK-007 | Create `backend/app/core/config.py` with Pydantic settings class `Settings` and environment loading from `.env`.                   |           |      |
-| TASK-008 | Create `backend/app/core/logging.py` with JSON and console logging profiles keyed by `APP_ENV`.                                    |           |      |
-| TASK-009 | Create `backend/app/api/health.py` exposing `/health` and `/ready` endpoints that check database connectivity.                     |           |      |
-| TASK-010 | Create `backend/app/db/session.py` with SQLAlchemy engine/session factory and dependency `get_db_session()`.                       |           |      |
+| Task     | Description                                                                                                                        | Completed | Date       |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
+| TASK-006 | Create `backend/app/main.py` with `create_app()` function, CORS middleware, router registration, and startup/shutdown event hooks. | ✅        | 2026-06-28 |
+| TASK-007 | Create `backend/app/core/config.py` with Pydantic settings class `Settings` and environment loading from `.env`.                   | ✅        | 2026-06-28 |
+| TASK-008 | Create `backend/app/core/logging.py` with JSON and console logging profiles keyed by `APP_ENV`.                                    | ✅        | 2026-06-28 |
+| TASK-009 | Create `backend/app/api/health.py` exposing `/health` and `/ready` endpoints that check database connectivity.                     | ✅        | 2026-06-28 |
+| TASK-010 | Create `backend/app/db/session.py` with SQLAlchemy engine/session factory and dependency `get_db_session()`.                       | ✅        | 2026-06-28 |
 
 ### Implementation Phase 3
 
