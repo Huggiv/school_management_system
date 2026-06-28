@@ -29,19 +29,17 @@ export function useCreateAdmission() {
       return apiClient.post("/api/v1/admissions", {
         application_number: appNumber,
         student_name: payload.student_name,
+        class_name: payload.grade_applying_for,
+        email: payload.email,
+        contact_number: normalizeContactNumber(payload.contact_number),
         status: "pending",
-        meta: {
-          dob: payload.dob,
-          gender: payload.gender,
-          parent_name: payload.parent_name,
-          address: payload.address,
-          previous_school: payload.transfer_student ? payload.previous_school : "",
-          grade_applying_for: payload.grade_applying_for,
-          contact_number: normalizeContactNumber(payload.contact_number),
-          email: payload.email,
-          transfer_student: payload.transfer_student,
-          document_path: uploadedPath,
-        },
+        notes_json: JSON.stringify([
+          {
+            author: "system",
+            note: `Application submitted${uploadedPath ? " with supporting document" : ""}`,
+            timestamp: new Date().toISOString(),
+          },
+        ]),
       });
     },
     onSuccess: () => {

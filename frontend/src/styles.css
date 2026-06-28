@@ -285,6 +285,40 @@ a {
   margin-bottom: 0.8rem;
 }
 
+.export-columns-wrap {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 180px;
+}
+
+.export-columns-wrap span {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.export-columns-wrap select {
+  min-height: 90px;
+}
+
+.management-actions {
+  align-items: center;
+}
+
+.notes-panel {
+  margin-top: 1rem;
+}
+
+.note-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem;
+  margin-bottom: 0.55rem;
+}
+
+.note-item p {
+  margin: 0.35rem 0;
+}
+
 .admission-ops-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
