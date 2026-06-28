@@ -135,13 +135,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-008**: Add quality gates with unit/integration tests, static analysis, and performance checks.
 - **Completion Criteria**: Test suites and lint/type checks pass in local and CI; baseline API and UI performance checks are recorded.
 
-| Task     | Description                                                                                                                              | Completed | Date |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-036 | Add backend unit tests in `backend/tests/unit/` for services, security helpers, and schema validation.                                   |           |      |
-| TASK-037 | Add backend integration tests in `backend/tests/integration/` using FastAPI `TestClient` and temporary PostgreSQL test schema.           |           |      |
-| TASK-038 | Add frontend unit/component tests in `frontend/src/**/*.test.tsx` using Vitest and Testing Library.                                      |           |      |
-| TASK-039 | Add end-to-end tests in `frontend/e2e/` (Playwright) for login, role dashboard, admission submit, assignment submission, and grade view. |           |      |
-| TASK-040 | Add scripts in root `Makefile` and CI workflows in `.github/workflows/` to enforce lint, type-check, tests, and build tasks.             |           |      |
+| Task     | Description                                                                                                                              | Completed | Date       |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
+| TASK-036 | Add backend unit tests in `backend/tests/unit/` for services, security helpers, and schema validation.                                   | ✅        | 2026-06-28 |
+| TASK-037 | Add backend integration tests in `backend/tests/integration/` using FastAPI `TestClient` and temporary PostgreSQL test schema.           | ✅        | 2026-06-28 |
+| TASK-038 | Add frontend unit/component tests in `frontend/src/**/*.test.tsx` using Vitest and Testing Library.                                      | ✅        | 2026-06-28 |
+| TASK-039 | Add end-to-end tests in `frontend/e2e/` (Playwright) for login, role dashboard, admission submit, assignment submission, and grade view. | ✅        | 2026-06-28 |
+| TASK-040 | Add scripts in root `Makefile` and CI workflows in `.github/workflows/` to enforce lint, type-check, tests, and build tasks.             | ✅        | 2026-06-28 |
 
 ### Implementation Phase 9
 
