@@ -109,13 +109,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-006**: Bootstrap frontend application shell, routing, role-aware layout, and API integration foundation.
 - **Completion Criteria**: Frontend builds successfully, routes render, auth context works, and protected navigation gates by role.
 
-| Task     | Description                                                                                                                                                                                                 | Completed | Date |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-026 | Initialize Vite React TypeScript app in `frontend/` with strict mode and path aliases in `frontend/tsconfig.json`.                                                                                          |           |      |
-| TASK-027 | Create route map in `frontend/src/router/index.tsx` for `/`, `/login`, `/dashboard`, `/admission`, `/grade`, `/assignments`, `/about`, `/contact`, `/profile`, `/admin`, `/student`, `/teacher`, `/parent`. |           |      |
-| TASK-028 | Create auth state provider in `frontend/src/features/auth/AuthProvider.tsx` and protected route wrapper in `frontend/src/router/ProtectedRoute.tsx`.                                                        |           |      |
-| TASK-029 | Add Axios client and interceptors in `frontend/src/lib/api/client.ts` with token refresh and standardized error mapping.                                                                                    |           |      |
-| TASK-030 | Add TanStack Query provider in `frontend/src/lib/query/QueryProvider.tsx` with cache policies and request retry constraints.                                                                                |           |      |
+| Task     | Description                                                                                                                                                                                                 | Completed | Date       |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
+| TASK-026 | Initialize Vite React TypeScript app in `frontend/` with strict mode and path aliases in `frontend/tsconfig.json`.                                                                                          | ✅        | 2026-06-28 |
+| TASK-027 | Create route map in `frontend/src/router/index.tsx` for `/`, `/login`, `/dashboard`, `/admission`, `/grade`, `/assignments`, `/about`, `/contact`, `/profile`, `/admin`, `/student`, `/teacher`, `/parent`. | ✅        | 2026-06-28 |
+| TASK-028 | Create auth state provider in `frontend/src/features/auth/AuthProvider.tsx` and protected route wrapper in `frontend/src/router/ProtectedRoute.tsx`.                                                        | ✅        | 2026-06-28 |
+| TASK-029 | Add Axios client and interceptors in `frontend/src/lib/api/client.ts` with token refresh and standardized error mapping.                                                                                    | ✅        | 2026-06-28 |
+| TASK-030 | Add TanStack Query provider in `frontend/src/lib/query/QueryProvider.tsx` with cache policies and request retry constraints.                                                                                | ✅        | 2026-06-28 |
 
 ### Implementation Phase 7
 
