@@ -23,6 +23,18 @@ class Settings(BaseSettings):
     postgres_user: str = Field(default="school_admin", alias="POSTGRES_USER")
     postgres_password: str = Field(default="change_me", alias="POSTGRES_PASSWORD")
 
+    jwt_secret_key: str = Field(default="change_me_jwt_secret", alias="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
+    jwt_access_token_expire_minutes: int = Field(
+        default=30, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
+    )
+    jwt_refresh_token_expire_minutes: int = Field(
+        default=10080, alias="JWT_REFRESH_TOKEN_EXPIRE_MINUTES"
+    )
+    jwt_reset_token_expire_minutes: int = Field(
+        default=30, alias="JWT_RESET_TOKEN_EXPIRE_MINUTES"
+    )
+
     model_config = SettingsConfigDict(
         env_file=("../.env", ".env"),
         env_file_encoding="utf-8",

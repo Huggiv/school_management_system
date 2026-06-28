@@ -83,13 +83,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-004**: Deliver authentication and authorization infrastructure with JWT and role guards.
 - **Completion Criteria**: Login, token refresh, logout, forgot-password initiation, and role-protected endpoint tests pass.
 
-| Task     | Description                                                                                                                          | Completed | Date |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------- | ---- |
-| TASK-016 | Implement auth schemas in `backend/app/schemas/auth.py` and user schemas in `backend/app/schemas/user.py` using Pydantic validation. |           |      |
-| TASK-017 | Implement password and token utilities in `backend/app/security/auth.py` using bcrypt and JWT signing/verification helpers.          |           |      |
-| TASK-018 | Implement auth routes in `backend/app/api/auth.py`: `/login`, `/logout`, `/forgot-password`, `/reset-password`, `/refresh-token`.    |           |      |
-| TASK-019 | Implement role dependency guards in `backend/app/security/permissions.py` with explicit allow-lists per endpoint.                    |           |      |
-| TASK-020 | Add auth service logic in `backend/app/services/auth_service.py` including reset token issuance and expiry validation.               |           |      |
+| Task     | Description                                                                                                                          | Completed | Date       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------- | ---------- |
+| TASK-016 | Implement auth schemas in `backend/app/schemas/auth.py` and user schemas in `backend/app/schemas/user.py` using Pydantic validation. | ✅        | 2026-06-28 |
+| TASK-017 | Implement password and token utilities in `backend/app/security/auth.py` using bcrypt and JWT signing/verification helpers.          | ✅        | 2026-06-28 |
+| TASK-018 | Implement auth routes in `backend/app/api/auth.py`: `/login`, `/logout`, `/forgot-password`, `/reset-password`, `/refresh-token`.    | ✅        | 2026-06-28 |
+| TASK-019 | Implement role dependency guards in `backend/app/security/permissions.py` with explicit allow-lists per endpoint.                    | ✅        | 2026-06-28 |
+| TASK-020 | Add auth service logic in `backend/app/services/auth_service.py` including reset token issuance and expiry validation.               | ✅        | 2026-06-28 |
 
 ### Implementation Phase 5
 
