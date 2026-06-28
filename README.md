@@ -31,7 +31,17 @@ React + Vite frontend, PostgreSQL, and Docker Compose deployment.
 
 ## Quick Start (Docker)
 
-- `docker compose up --build`
+- `docker compose up --build -d`
+
+### Docker Recovery (Credential or Migration Mismatch)
+
+If backend logs show PostgreSQL authentication errors or duplicate migration
+objects after changing `.env`, reset the persisted DB volume and redeploy:
+
+1. `docker compose down -v`
+2. `docker compose up --build -d`
+3. `docker compose ps`
+4. `curl -f http://localhost:8000/health`
 
 ## Validation Commands
 

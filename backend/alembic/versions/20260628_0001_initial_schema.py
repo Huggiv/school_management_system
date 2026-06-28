@@ -8,6 +8,7 @@ Create Date: 2026-06-28 22:00:00
 from typing import Sequence, Union
 
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 from alembic import op
 
 
@@ -18,7 +19,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-user_role = sa.Enum(
+user_role = postgresql.ENUM(
     "administrator",
     "principal",
     "teacher",
@@ -26,9 +27,16 @@ user_role = sa.Enum(
     "parent",
     "guest",
     name="user_role",
+    create_type=False,
 )
 
-admission_status = sa.Enum("pending", "accepted", "rejected", name="admission_status")
+admission_status = postgresql.ENUM(
+    "pending",
+    "accepted",
+    "rejected",
+    name="admission_status",
+    create_type=False,
+)
 
 
 def upgrade() -> None:

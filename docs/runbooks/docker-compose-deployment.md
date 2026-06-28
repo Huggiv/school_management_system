@@ -94,8 +94,41 @@ docker compose up --build -d
 
 | Symptom | Probable Cause | Resolution |
 | --- | --- | --- |
-| `backend` keeps restarting | DB not healthy or migration failed | Check `docker compose logs db backend`; verify DB credentials and run `docker compose exec backend alembic -c alembic.ini upgrade head`. |
+| `backend` keeps restarting | DB not healthy, DB credentials drift, or partial migration state | Check `docker compose logs db backend`; verify DB credentials and run `docker compose exec backend alembic -c alembic.ini upgrade head`. If startup still fails with `password authentication failed` or duplicate migration objects, follow the recovery sequence below. |
 | Frontend shows API errors | Invalid `VITE_API_BASE_URL` | Set `VITE_API_BASE_URL` to reachable backend URL and rebuild frontend service. |
 | DB connection refused | Port conflict on `5432` | Stop local PostgreSQL or remap compose port. |
 | Upload failures (`413`) | File exceeds max upload size | Increase `STORAGE_MAX_UPLOAD_MB` and restart backend. |
 | `frontend` unhealthy | Nginx not serving `/health` | Verify `frontend/nginx.conf` and rebuild frontend image. |
+
+## Recovery Sequence for DB Auth or Partial Migration State
+
+Use this sequence when backend fails with either:
+
+- `password authentication failed for user ...`
+- `DuplicateObject` or `DuplicateTable` during Alembic startup
+
+1. Stop stack and remove the persisted database volume:
+
+```bash
+docker compose down -v
+```
+
+1. Rebuild and start from a clean state:
+
+```bash
+docker compose up --build -d
+```
+
+1. Confirm all services are healthy:
+
+```bash
+docker compose ps
+```
+
+1. Verify backend readiness:
+
+```bash
+curl -f http://localhost:8000/health
+```
+
+Note: `docker compose down -v` removes local PostgreSQL data. Take a backup first if data must be retained.
