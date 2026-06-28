@@ -96,13 +96,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-005**: Implement all backend domain modules and dashboard aggregates.
 - **Completion Criteria**: All required REST modules are implemented with CRUD/list filters, pagination, and role-based access.
 
-| Task     | Description                                                                                                                                                                  | Completed | Date |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-021 | Create routers under `backend/app/api/` for users, students, teachers, parents, admissions, grades, assignments, submissions, events, gallery, announcements, and dashboard. |           |      |
-| TASK-022 | Implement service layer in `backend/app/services/` for each domain module with transactional operations and validation checks.                                               |           |      |
-| TASK-023 | Implement repository/query modules in `backend/app/repositories/` with paginated filters (`page`, `size`, `sort`, `search`) and index-aligned queries.                       |           |      |
-| TASK-024 | Add file upload/download handling in `backend/app/api/files.py` and `backend/app/services/storage_service.py` using local filesystem abstraction with path isolation.        |           |      |
-| TASK-025 | Implement `backend/app/api/dashboard.py` aggregate endpoints returning role-specific metrics for admin, teacher, student, and parent.                                        |           |      |
+| Task     | Description                                                                                                                                                                  | Completed | Date       |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
+| TASK-021 | Create routers under `backend/app/api/` for users, students, teachers, parents, admissions, grades, assignments, submissions, events, gallery, announcements, and dashboard. | ✅        | 2026-06-28 |
+| TASK-022 | Implement service layer in `backend/app/services/` for each domain module with transactional operations and validation checks.                                               | ✅        | 2026-06-28 |
+| TASK-023 | Implement repository/query modules in `backend/app/repositories/` with paginated filters (`page`, `size`, `sort`, `search`) and index-aligned queries.                       | ✅        | 2026-06-28 |
+| TASK-024 | Add file upload/download handling in `backend/app/api/files.py` and `backend/app/services/storage_service.py` using local filesystem abstraction with path isolation.        | ✅        | 2026-06-28 |
+| TASK-025 | Implement `backend/app/api/dashboard.py` aggregate endpoints returning role-specific metrics for admin, teacher, student, and parent.                                        | ✅        | 2026-06-28 |
 
 ### Implementation Phase 6
 

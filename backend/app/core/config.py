@@ -35,6 +35,9 @@ class Settings(BaseSettings):
         default=30, alias="JWT_RESET_TOKEN_EXPIRE_MINUTES"
     )
 
+    storage_root: str = Field(default="./storage", alias="STORAGE_ROOT")
+    storage_max_upload_mb: int = Field(default=20, alias="STORAGE_MAX_UPLOAD_MB")
+
     model_config = SettingsConfigDict(
         env_file=("../.env", ".env"),
         env_file_encoding="utf-8",
