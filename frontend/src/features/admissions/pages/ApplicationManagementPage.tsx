@@ -72,95 +72,99 @@ export function ApplicationManagementPage() {
   }
 
   return (
-    <section className="panel">
-      <h1>Application Management</h1>
-      <AdmissionFilters
-        search={search}
-        statusFilter={statusFilter}
-        classNameFilter={classNameFilter}
-        fromDate={fromDate}
-        toDate={toDate}
-        exportColumns={exportColumns}
-        onSearchChange={setSearch}
-        onStatusChange={setStatusFilter}
-        onClassNameChange={setClassNameFilter}
-        onFromDateChange={setFromDate}
-        onToDateChange={setToDate}
-        onExportColumnsChange={setExportColumns}
-        onExport={() => exportAdmissions(filtered, exportColumns)}
-      />
-
-      <div className="toolbar management-actions">
-        <select value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value as Exclude<AdmissionStatusOption, "all">)}>
-          <option value="pending">Set Pending</option>
-          <option value="under_review">Set Under Review</option>
-          <option value="waitlisted">Set Waitlisted</option>
-          <option value="accepted">Set Accepted</option>
-          <option value="rejected">Set Rejected</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Decision reason (required for audit)"
-          value={decisionReason}
-          onChange={(event) => setDecisionReason(event.target.value)}
+    <main className="container page-stack">
+      <section className="panel">
+        <h1>Application Management</h1>
+        <AdmissionFilters
+          search={search}
+          statusFilter={statusFilter}
+          classNameFilter={classNameFilter}
+          fromDate={fromDate}
+          toDate={toDate}
+          exportColumns={exportColumns}
+          onSearchChange={setSearch}
+          onStatusChange={setStatusFilter}
+          onClassNameChange={setClassNameFilter}
+          onFromDateChange={setFromDate}
+          onToDateChange={setToDate}
+          onExportColumnsChange={setExportColumns}
+          onExport={() => exportAdmissions(filtered, exportColumns)}
         />
-        <button
-          type="button"
-          disabled={!hasSelection || !decisionReason.trim() || bulkStatusMutation.isPending}
-          onClick={() => {
-            bulkStatusMutation.mutate(
-              {
-                ids: selectedIds,
-                status: bulkStatus,
-                actor: "admin",
-                reason: decisionReason.trim(),
-              },
-              {
-                onSuccess: () => {
-                  setSelectedIds([]);
-                  setDecisionReason("");
-                },
-              },
-            );
-          }}
-        >
-          Apply Status to Selected
-        </button>
 
-        <input
-          type="text"
-          placeholder="Reviewer name"
-          value={reviewerName}
-          onChange={(event) => setReviewerName(event.target.value)}
-        />
-        <button
-          type="button"
-          disabled={!hasSelection || !reviewerName.trim() || assignReviewerMutation.isPending}
-          onClick={() => {
-            assignReviewerMutation.mutate(
-              { ids: selectedIds, reviewer_name: reviewerName.trim() },
-              {
-                onSuccess: () => {
-                  setSelectedIds([]);
+        <div className="toolbar management-actions">
+          <select value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value as Exclude<AdmissionStatusOption, "all">)}>
+            <option value="pending">Set Pending</option>
+            <option value="under_review">Set Under Review</option>
+            <option value="waitlisted">Set Waitlisted</option>
+            <option value="accepted">Set Accepted</option>
+            <option value="rejected">Set Rejected</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Decision reason (required for audit)"
+            value={decisionReason}
+            onChange={(event) => setDecisionReason(event.target.value)}
+          />
+          <button
+            type="button"
+            disabled={!hasSelection || !decisionReason.trim() || bulkStatusMutation.isPending}
+            onClick={() => {
+              bulkStatusMutation.mutate(
+                {
+                  ids: selectedIds,
+                  status: bulkStatus,
+                  actor: "admin",
+                  reason: decisionReason.trim(),
                 },
-              },
-            );
-          }}
-        >
-          Assign Reviewer to Selected
-        </button>
-      </div>
+                {
+                  onSuccess: () => {
+                    setSelectedIds([]);
+                    setDecisionReason("");
+                  },
+                },
+              );
+            }}
+          >
+            Apply Status to Selected
+          </button>
 
-      <AdmissionsTable
-        items={filtered}
-        selectedIds={selectedIds}
-        onToggleSelect={toggleSelect}
-        onToggleSelectAll={toggleSelectAll}
-        onOpenNotes={(item) => {
-          setActiveAdmission(item);
-          setNoteText("");
-        }}
-      />
+          <input
+            type="text"
+            placeholder="Reviewer name"
+            value={reviewerName}
+            onChange={(event) => setReviewerName(event.target.value)}
+          />
+          <button
+            type="button"
+            disabled={!hasSelection || !reviewerName.trim() || assignReviewerMutation.isPending}
+            onClick={() => {
+              assignReviewerMutation.mutate(
+                { ids: selectedIds, reviewer_name: reviewerName.trim() },
+                {
+                  onSuccess: () => {
+                    setSelectedIds([]);
+                  },
+                },
+              );
+            }}
+          >
+            Assign Reviewer to Selected
+          </button>
+        </div>
+
+        <div className="table-wrap">
+          <AdmissionsTable
+            items={filtered}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+            onOpenNotes={(item) => {
+              setActiveAdmission(item);
+              setNoteText("");
+            }}
+          />
+        </div>
+      </section>
 
       {activeAdmission && (
         <section className="panel notes-panel">
@@ -219,6 +223,6 @@ export function ApplicationManagementPage() {
           ))}
         </section>
       )}
-    </section>
+    </main>
   );
 }

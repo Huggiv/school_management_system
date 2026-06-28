@@ -2,7 +2,6 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Navbar } from "@/components/navigation/Navbar";
-import { AdmissionOpsLayout } from "@/features/admissions/components/AdmissionOpsLayout";
 import { AdmissionReportsPage } from "@/features/admissions/pages/AdmissionReportsPage";
 import { AdmissionRootRedirect } from "@/features/admissions/pages/AdmissionRootRedirect";
 import { ApplicationManagementPage } from "@/features/admissions/pages/ApplicationManagementPage";
@@ -141,12 +140,10 @@ export function AppRouter() {
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["administrator", "principal"]} />}>
-          <Route path="/admission" element={<AdmissionOpsLayout />}>
-            <Route path="manage" element={<ApplicationManagementPage />} />
-            <Route path="review" element={<ReviewQueuePage />} />
-            <Route path="history" element={<DecisionHistoryPage />} />
-            <Route path="reports" element={<AdmissionReportsPage />} />
-          </Route>
+          <Route path="/admission/manage" element={<ApplicationManagementPage />} />
+          <Route path="/admission/review" element={<ReviewQueuePage />} />
+          <Route path="/admission/history" element={<DecisionHistoryPage />} />
+          <Route path="/admission/reports" element={<AdmissionReportsPage />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["administrator", "principal"]} />}>

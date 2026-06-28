@@ -85,6 +85,53 @@ a {
   gap: 0.5rem;
 }
 
+.action-dropdown {
+  position: relative;
+}
+
+.action-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.action-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  min-width: 220px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(5, 42, 69, 0.98);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+  display: grid;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+}
+
+.action-dropdown:hover .action-dropdown-menu,
+.action-dropdown:focus-within .action-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.action-dropdown-item {
+  padding: 0.55rem 0.7rem;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.action-dropdown-item:last-child {
+  border-bottom: 0;
+}
+
+.action-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .nav-link,
 .auth-btn {
   padding: 0.45rem 0.75rem;
@@ -312,10 +359,23 @@ a {
 
 .management-actions {
   align-items: center;
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) minmax(220px, 1fr) auto minmax(180px, 240px) auto;
+}
+
+.management-actions input,
+.management-actions select,
+.management-actions button {
+  width: 100%;
 }
 
 .notes-panel {
   margin-top: 1rem;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
 }
 
 .note-item {
@@ -327,47 +387,6 @@ a {
 
 .note-item p {
   margin: 0.35rem 0;
-}
-
-.admission-ops-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 1rem;
-  padding: 1.25rem 1rem 2rem;
-}
-
-.admission-side-nav {
-  align-self: start;
-  position: sticky;
-  top: 84px;
-}
-
-.admission-side-nav h2 {
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-}
-
-.admission-side-nav-links {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.admission-side-nav-link {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.52rem 0.7rem;
-  background: #fff;
-}
-
-.admission-side-nav-link.active {
-  background: #e9f6fb;
-  border-color: #8bcde0;
-  color: #0a5978;
-  font-weight: 600;
-}
-
-.admission-ops-content {
-  min-width: 0;
 }
 
 .table {
@@ -439,6 +458,21 @@ button,
     transition: transform 220ms ease;
   }
 
+  .action-dropdown {
+    width: 100%;
+  }
+
+  .action-dropdown-menu {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 0.3rem;
+    box-shadow: none;
+  }
+
   .main-nav.show {
     transform: translateY(0);
   }
@@ -449,11 +483,7 @@ button,
     text-align: left;
   }
 
-  .admission-ops-layout {
+  .management-actions {
     grid-template-columns: 1fr;
-  }
-
-  .admission-side-nav {
-    position: static;
   }
 }
