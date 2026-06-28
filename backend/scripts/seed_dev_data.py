@@ -17,28 +17,35 @@ DEMO_PASSWORD = "Demo@1234"
 
 DEMO_USERS = [
     {
-        "email": "admin@school.local",
+        "email": "admin@school.example.com",
         "first_name": "System",
         "last_name": "Admin",
         "role": UserRole.ADMINISTRATOR,
         "phone": "+10000000000",
     },
     {
-        "email": "teacher@school.local",
+        "email": "principal@school.example.com",
+        "first_name": "Priya",
+        "last_name": "Nair",
+        "role": UserRole.PRINCIPAL,
+        "phone": "+10000000004",
+    },
+    {
+        "email": "teacher@school.example.com",
         "first_name": "Anita",
         "last_name": "Sharma",
         "role": UserRole.TEACHER,
         "phone": "+10000000001",
     },
     {
-        "email": "student@school.local",
+        "email": "student@school.example.com",
         "first_name": "Rahul",
         "last_name": "Kumar",
         "role": UserRole.STUDENT,
         "phone": "+10000000002",
     },
     {
-        "email": "guest@school.local",
+        "email": "guest@school.example.com",
         "first_name": "Demo",
         "last_name": "Guest",
         "role": UserRole.GUEST,
@@ -80,9 +87,9 @@ def run_seed() -> None:
             )
             users_by_email[user.email] = user
 
-        admin = users_by_email["admin@school.local"]
-        teacher_user = users_by_email["teacher@school.local"]
-        student_user = users_by_email["student@school.local"]
+        admin = users_by_email["admin@school.example.com"]
+        teacher_user = users_by_email["teacher@school.example.com"]
+        student_user = users_by_email["student@school.example.com"]
 
         teacher = session.execute(
             select(Teacher).where(Teacher.employee_id == "EMP-1001")
@@ -96,6 +103,8 @@ def run_seed() -> None:
             )
             session.add(teacher)
             session.flush()
+        else:
+            teacher.user_id = teacher_user.id
 
         student = session.execute(
             select(Student).where(Student.admission_number == "ADM-2026-0001")
@@ -110,6 +119,8 @@ def run_seed() -> None:
             )
             session.add(student)
             session.flush()
+        else:
+            student.user_id = student_user.id
 
         admission = session.execute(
             select(Admission).where(Admission.application_number == "APP-2026-0001")

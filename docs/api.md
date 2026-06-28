@@ -11,12 +11,17 @@
 
 `POST /api/v1/auth/login`
 
+Demo logins are seeded with password `Demo@1234`:
+
+- `admin@school.example.com` for administrator access
+- `principal@school.example.com` for principal access
+
 Request body:
 
 ```json
 {
-  "email": "admin@school.local",
-  "password": "Password123"
+  "email": "admin@school.example.com",
+  "password": "Demo@1234"
 }
 ```
 
@@ -34,7 +39,7 @@ Response body:
     "id": 1,
     "first_name": "System",
     "last_name": "Admin",
-    "email": "admin@school.local",
+    "email": "admin@school.example.com",
     "role": "administrator"
   }
 }

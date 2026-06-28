@@ -25,10 +25,11 @@ Run seed data from the backend folder:
 
 Example demo users (all use password `Demo@1234`):
 
-- `admin@school.local` (administrator)
-- `teacher@school.local` (teacher)
-- `student@school.local` (student)
-- `guest@school.local` (guest)
+- `admin@school.example.com` (administrator)
+- `principal@school.example.com` (principal)
+- `teacher@school.example.com` (teacher)
+- `student@school.example.com` (student)
+- `guest@school.example.com` (guest)
 
 ### Sign Up
 
