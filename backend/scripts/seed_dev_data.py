@@ -8,9 +8,43 @@ from sqlalchemy import select
 from app.db.session import SessionLocal
 from app.models import Admission, Announcement, Assignment, Event, Grade, Student, Submission, Teacher, User
 from app.models.enums import AdmissionStatus, UserRole
+from app.security.auth import hash_password
 
 
 RANDOM_SEED = 20260628
+DEMO_PASSWORD = "Demo@1234"
+
+
+DEMO_USERS = [
+    {
+        "email": "admin@school.local",
+        "first_name": "System",
+        "last_name": "Admin",
+        "role": UserRole.ADMINISTRATOR,
+        "phone": "+10000000000",
+    },
+    {
+        "email": "teacher@school.local",
+        "first_name": "Anita",
+        "last_name": "Sharma",
+        "role": UserRole.TEACHER,
+        "phone": "+10000000001",
+    },
+    {
+        "email": "student@school.local",
+        "first_name": "Rahul",
+        "last_name": "Kumar",
+        "role": UserRole.STUDENT,
+        "phone": "+10000000002",
+    },
+    {
+        "email": "guest@school.local",
+        "first_name": "Demo",
+        "last_name": "Guest",
+        "role": UserRole.GUEST,
+        "phone": "+10000000003",
+    },
+]
 
 
 def upsert_user(session, email: str, **fields) -> User:
@@ -29,40 +63,26 @@ def upsert_user(session, email: str, **fields) -> User:
 def run_seed() -> None:
     random.seed(RANDOM_SEED)
     now = datetime.now(timezone.utc)
+    password_hash = hash_password(DEMO_PASSWORD)
 
     with SessionLocal() as session:
-        admin = upsert_user(
-            session,
-            email="admin@school.local",
-            first_name="System",
-            last_name="Admin",
-            password="$2b$12$replace.with.real.bcrypt.hash",
-            role=UserRole.ADMINISTRATOR,
-            phone="+10000000000",
-            profile_image=None,
-        )
+        users_by_email: dict[str, User] = {}
+        for demo_user in DEMO_USERS:
+            user = upsert_user(
+                session,
+                email=demo_user["email"],
+                first_name=demo_user["first_name"],
+                last_name=demo_user["last_name"],
+                password=password_hash,
+                role=demo_user["role"],
+                phone=demo_user["phone"],
+                profile_image=None,
+            )
+            users_by_email[user.email] = user
 
-        teacher_user = upsert_user(
-            session,
-            email="teacher@school.local",
-            first_name="Anita",
-            last_name="Sharma",
-            password="$2b$12$replace.with.real.bcrypt.hash",
-            role=UserRole.TEACHER,
-            phone="+10000000001",
-            profile_image=None,
-        )
-
-        student_user = upsert_user(
-            session,
-            email="student@school.local",
-            first_name="Rahul",
-            last_name="Kumar",
-            password="$2b$12$replace.with.real.bcrypt.hash",
-            role=UserRole.STUDENT,
-            phone="+10000000002",
-            profile_image=None,
-        )
+        admin = users_by_email["admin@school.local"]
+        teacher_user = users_by_email["teacher@school.local"]
+        student_user = users_by_email["student@school.local"]
 
         teacher = session.execute(
             select(Teacher).where(Teacher.employee_id == "EMP-1001")
@@ -172,6 +192,11 @@ def run_seed() -> None:
 
         _ = admin
         session.commit()
+
+    print("Seed complete. Demo users:")
+    for demo_user in DEMO_USERS:
+        role_value = demo_user["role"].value
+        print(f"- {demo_user['email']} / {DEMO_PASSWORD} ({role_value})")
 
 
 if __name__ == "__main__":

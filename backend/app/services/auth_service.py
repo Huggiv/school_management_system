@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.models.enums import UserRole
 from app.models.user import User
 from app.security.auth import (
     create_access_token,
@@ -18,6 +19,37 @@ settings = get_settings()
 
 
 class AuthService:
+    @staticmethod
+    def signup_guest(
+        db: Session,
+        *,
+        first_name: str,
+        last_name: str,
+        email: str,
+        password: str,
+        phone: str | None,
+    ) -> User:
+        existing = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+        if existing is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email is already registered",
+            )
+
+        user = User(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=hash_password(password),
+            role=UserRole.GUEST,
+            phone=phone,
+            profile_image=None,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+
     @staticmethod
     def authenticate_user(db: Session, email: str, password: str) -> User:
         user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()

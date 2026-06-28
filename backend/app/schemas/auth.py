@@ -6,6 +6,21 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class SignupRequest(BaseModel):
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    confirm_password: str = Field(min_length=8, max_length=128)
+    phone: str | None = Field(default=None, max_length=32)
+
+    @model_validator(mode="after")
+    def validate_passwords_match(self) -> "SignupRequest":
+        if self.password != self.confirm_password:
+            raise ValueError("password and confirm_password must match")
+        return self
+
+
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 

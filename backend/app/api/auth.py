@@ -11,6 +11,7 @@ from app.schemas.auth import (
     MessageResponse,
     RefreshTokenRequest,
     ResetPasswordRequest,
+    SignupRequest,
     TokenResponse,
 )
 from app.services.auth_service import AuthService
@@ -23,6 +24,32 @@ router = APIRouter(prefix="/auth")
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db_session)) -> LoginResponse:
     user = AuthService.authenticate_user(db, payload.email, payload.password)
+    tokens = TokenResponse(**AuthService.issue_login_tokens(user))
+    role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
+    return LoginResponse(
+        tokens=tokens,
+        user={
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "role": role_value,
+            "phone": user.phone,
+            "profile_image": user.profile_image,
+        },
+    )
+
+
+@router.post("/signup", response_model=LoginResponse, status_code=201)
+def signup(payload: SignupRequest, db: Session = Depends(get_db_session)) -> LoginResponse:
+    user = AuthService.signup_guest(
+        db,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        email=payload.email,
+        password=payload.password,
+        phone=payload.phone,
+    )
     tokens = TokenResponse(**AuthService.issue_login_tokens(user))
     role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
     return LoginResponse(

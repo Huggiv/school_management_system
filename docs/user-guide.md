@@ -17,6 +17,25 @@ The School Management Portal supports multiple roles with tailored workflows:
 2. Enter email and password.
 3. Select features from the top navigation after successful sign-in.
 
+### Demo Seed Data and Example Logins
+
+Run seed data from the backend folder:
+
+1. `python -m scripts.seed_dev_data`
+
+Example demo users (all use password `Demo@1234`):
+
+- `admin@school.local` (administrator)
+- `teacher@school.local` (teacher)
+- `student@school.local` (student)
+- `guest@school.local` (guest)
+
+### Sign Up
+
+1. Open `/signup`.
+2. Create your account with first name, last name, email, and password.
+3. New accounts are created with the default role `guest`.
+
 ## Role Workflows
 
 ### Administrator and Principal

@@ -61,9 +61,14 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <NavLink className="auth-btn" onClick={() => setOpen(false)} to="/login">
-              Login
-            </NavLink>
+            <>
+              <NavLink className="nav-link" onClick={() => setOpen(false)} to="/signup">
+                Sign up
+              </NavLink>
+              <NavLink className="auth-btn" onClick={() => setOpen(false)} to="/login">
+                Login
+              </NavLink>
+            </>
           )}
         </nav>
       </div>

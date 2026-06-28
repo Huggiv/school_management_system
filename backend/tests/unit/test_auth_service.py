@@ -59,3 +59,21 @@ def test_issue_and_use_password_reset_token() -> None:
         AuthService.reset_password(db, token=reset_token, new_password="NewPassword123")
         updated = AuthService.authenticate_user(db, "teacher@test.local", "NewPassword123")
         assert updated.email == "teacher@test.local"
+
+
+def test_signup_guest_creates_guest_role_user() -> None:
+    with _session() as db:
+        user = AuthService.signup_guest(
+            db,
+            first_name="Guest",
+            last_name="User",
+            email="guest@test.local",
+            password="Password123",
+            phone=None,
+        )
+
+        assert user.email == "guest@test.local"
+        assert user.role == UserRole.GUEST
+
+        authed = AuthService.authenticate_user(db, "guest@test.local", "Password123")
+        assert authed.id == user.id

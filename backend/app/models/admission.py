@@ -13,5 +13,11 @@ class Admission(TimestampMixin, Base):
     application_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     student_name: Mapped[str] = mapped_column(String(150), nullable=False)
     status: Mapped[AdmissionStatus] = mapped_column(
-        SqlEnum(AdmissionStatus, name="admission_status"), nullable=False, default=AdmissionStatus.PENDING
+        SqlEnum(
+            AdmissionStatus,
+            name="admission_status",
+            values_callable=lambda enum_cls: [item.value for item in enum_cls],
+        ),
+        nullable=False,
+        default=AdmissionStatus.PENDING,
     )

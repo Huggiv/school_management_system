@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Navbar } from "@/components/navigation/Navbar";
@@ -19,7 +19,7 @@ function LoginPage() {
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
     await login({ email, password });
-    window.location.href = "/dashboard";
+    window.location.href = "/";
   }
 
   return (
@@ -45,6 +45,71 @@ function LoginPage() {
           <div style={{ marginTop: "0.75rem" }}>
             <button type="submit">Sign in</button>
           </div>
+          <p style={{ marginTop: "0.75rem" }}>
+            New here? <Link to="/signup">Create an account</Link>
+          </p>
+        </form>
+      </section>
+    </main>
+  );
+}
+
+function SignupPage() {
+  const { signup } = useAuth();
+
+  async function onSubmit(formData: FormData): Promise<void> {
+    const first_name = String(formData.get("first_name") ?? "").trim();
+    const last_name = String(formData.get("last_name") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const confirm_password = String(formData.get("confirm_password") ?? "");
+    await signup({
+      first_name,
+      last_name,
+      email,
+      password,
+      confirm_password,
+      phone: phone || undefined,
+    });
+    window.location.href = "/";
+  }
+
+  return (
+    <main className="container">
+      <section className="card">
+        <h1>Sign up</h1>
+        <form
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            try {
+              await onSubmit(data);
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : "Sign-up failed";
+              alert(msg);
+            }
+          }}
+        >
+          <div className="grid">
+            <input name="first_name" type="text" placeholder="First name" required />
+            <input name="last_name" type="text" placeholder="Last name" required />
+            <input name="email" type="email" placeholder="Email" required />
+            <input name="phone" type="tel" placeholder="Phone (optional)" />
+            <input name="password" type="password" placeholder="Password" required />
+            <input
+              name="confirm_password"
+              type="password"
+              placeholder="Confirm password"
+              required
+            />
+          </div>
+          <div style={{ marginTop: "0.75rem" }}>
+            <button type="submit">Create account</button>
+          </div>
+          <p style={{ marginTop: "0.75rem" }}>
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
         </form>
       </section>
     </main>
@@ -58,6 +123,7 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />

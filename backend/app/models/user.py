@@ -14,6 +14,9 @@ class User(TimestampMixin, Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[UserRole] = mapped_column(SqlEnum(UserRole, name="user_role"), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        SqlEnum(UserRole, name="user_role", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
+        nullable=False,
+    )
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     profile_image: Mapped[str | None] = mapped_column(String(500), nullable=True)

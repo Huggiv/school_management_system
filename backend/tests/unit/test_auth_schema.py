@@ -1,6 +1,6 @@
 import pytest
 
-from app.schemas.auth import ResetPasswordRequest
+from app.schemas.auth import ResetPasswordRequest, SignupRequest
 
 
 def test_reset_password_schema_requires_matching_passwords() -> None:
@@ -19,3 +19,14 @@ def test_reset_password_schema_accepts_valid_data() -> None:
         confirm_password="StrongPass123",
     )
     assert payload.new_password == payload.confirm_password
+
+
+def test_signup_schema_requires_matching_passwords() -> None:
+    with pytest.raises(ValueError):
+        SignupRequest(
+            first_name="Demo",
+            last_name="Guest",
+            email="guest@test.local",
+            password="StrongPass123",
+            confirm_password="StrongPass999",
+        )

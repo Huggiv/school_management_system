@@ -37,3 +37,22 @@ def test_health_and_ready_endpoints(client) -> None:
     ready = client.get("/ready")
     assert health.status_code == 200
     assert ready.status_code == 200
+
+
+def test_signup_assigns_guest_role(client) -> None:
+    response = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "first_name": "Portal",
+            "last_name": "Guest",
+            "email": "portal-guest@test.local",
+            "password": "Password123",
+            "confirm_password": "Password123",
+            "phone": "+10000000003",
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["tokens"]["access_token"]
+    assert body["user"]["role"] == UserRole.GUEST.value
