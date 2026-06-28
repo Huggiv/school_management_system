@@ -15,6 +15,9 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 RUN useradd -m -u 10001 appuser
 
+# Pre-create runtime storage path so named volumes inherit writable ownership
+RUN mkdir -p /app/storage && chown -R appuser:appuser /app/storage
+
 COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini ./alembic.ini

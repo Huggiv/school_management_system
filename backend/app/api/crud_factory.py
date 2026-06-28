@@ -22,7 +22,8 @@ def build_crud_router(
     read_roles: tuple[UserRole, ...],
     write_roles: tuple[UserRole, ...],
 ) -> APIRouter:
-    router = APIRouter(prefix=f"/{prefix}")
+    router_prefix = f"/{prefix}" if prefix else ""
+    router = APIRouter(prefix=router_prefix)
 
     @router.get("/")
     def list_items(
