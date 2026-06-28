@@ -148,13 +148,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-009**: Containerize services and provide Docker Compose deployment workflow.
 - **Completion Criteria**: `docker compose up --build` starts all services, backend connects to database, frontend serves application, and health checks pass.
 
-| Task     | Description                                                                                                                                            | Completed | Date |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ---- |
-| TASK-041 | Create `backend/Dockerfile` multi-stage image with dependency caching, non-root runtime user, and Uvicorn startup command.                             |           |      |
-| TASK-042 | Create `frontend/Dockerfile` multi-stage image producing static bundle and serving via Nginx or Node preview server.                                   |           |      |
-| TASK-043 | Create `docker-compose.yml` at repository root with services `db`, `backend`, `frontend`, named volumes, and health checks with explicit dependencies. |           |      |
-| TASK-044 | Create `infra/postgres/init/` scripts for extension setup and optional seed trigger on first run.                                                      |           |      |
-| TASK-045 | Create `docs/runbooks/docker-compose-deployment.md` with exact deployment steps, environment variables, backup/restore, and troubleshooting matrix.    |           |      |
+| Task     | Description                                                                                                                                            | Completed | Date       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ---------- |
+| TASK-041 | Create `backend/Dockerfile` multi-stage image with dependency caching, non-root runtime user, and Uvicorn startup command.                             | ✅        | 2026-06-28 |
+| TASK-042 | Create `frontend/Dockerfile` multi-stage image producing static bundle and serving via Nginx or Node preview server.                                   | ✅        | 2026-06-28 |
+| TASK-043 | Create `docker-compose.yml` at repository root with services `db`, `backend`, `frontend`, named volumes, and health checks with explicit dependencies. | ✅        | 2026-06-28 |
+| TASK-044 | Create `infra/postgres/init/` scripts for extension setup and optional seed trigger on first run.                                                      | ✅        | 2026-06-28 |
+| TASK-045 | Create `docs/runbooks/docker-compose-deployment.md` with exact deployment steps, environment variables, backup/restore, and troubleshooting matrix.    | ✅        | 2026-06-28 |
 
 ### Implementation Phase 10
 
