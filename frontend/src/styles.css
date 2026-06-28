@@ -217,6 +217,67 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.field-wrap {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field-wrap span {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.checkbox-wrap {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.checkbox-wrap input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+.form-error-summary {
+  grid-column: 1 / -1;
+  border: 1px solid #f3b6b7;
+  background: #fff4f4;
+  color: #7a1013;
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+}
+
+.admission-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.admission-status.pending {
+  background: #fff3db;
+  color: #8a5300;
+}
+
+.admission-status.accepted {
+  background: #e5f8ec;
+  color: #0d6a37;
+}
+
+.admission-status.rejected {
+  background: #ffe9ea;
+  color: #a41217;
+}
+
 .toolbar {
   display: flex;
   gap: 0.6rem;

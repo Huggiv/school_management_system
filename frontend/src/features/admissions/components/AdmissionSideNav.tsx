@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
 
+import { useAuth } from "@/features/auth/AuthProvider";
+
 const ADMIN_ADMISSION_LINKS = [
   { to: "/admission/new", label: "New Admission" },
   { to: "/admission/manage", label: "Application Management" },
@@ -9,11 +11,15 @@ const ADMIN_ADMISSION_LINKS = [
 ];
 
 export function AdmissionSideNav() {
+  const { user } = useAuth();
+  const isAdminOpsUser = user?.role === "administrator" || user?.role === "principal";
+  const links = isAdminOpsUser ? ADMIN_ADMISSION_LINKS : [ADMIN_ADMISSION_LINKS[0]];
+
   return (
     <aside className="admission-side-nav panel" aria-label="Admission operations navigation">
       <h2>Admissions</h2>
       <nav className="admission-side-nav-links">
-        {ADMIN_ADMISSION_LINKS.map((link) => (
+        {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
