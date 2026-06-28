@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import api_router
+from app.api import api_router, v1_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 
@@ -32,6 +32,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(api_router)
+    app.include_router(v1_router)
     return app
 
 

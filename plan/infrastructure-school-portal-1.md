@@ -70,13 +70,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-003**: Implement database schema, migrations, and seed workflows for core entities.
 - **Completion Criteria**: Alembic migration upgrades cleanly from base to head and deterministic seeds populate development data.
 
-| Task     | Description                                                                                                                                                                             | Completed | Date |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-011 | Create SQLAlchemy models in `backend/app/models/` for `User`, `Student`, `Teacher`, `Parent`, `Admission`, `Assignment`, `Submission`, `Grade`, `Announcement`, `Event`, and `Gallery`. |           |      |
-| TASK-012 | Configure Alembic files `backend/alembic.ini`, `backend/alembic/env.py`, and initial migration under `backend/alembic/versions/` for all entities and foreign keys.                     |           |      |
-| TASK-013 | Add enum definitions in `backend/app/models/enums.py` for user roles and admission status with migration-safe value handling.                                                           |           |      |
-| TASK-014 | Add indexing strategy migration for frequent query fields (`email`, `role`, `student_id`, `assignment_id`, `event_date`, `published_at`).                                               |           |      |
-| TASK-015 | Add seed script `backend/scripts/seed_dev_data.py` with fixed random seed and idempotent upsert behavior.                                                                               |           |      |
+| Task     | Description                                                                                                                                                                             | Completed | Date       |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
+| TASK-011 | Create SQLAlchemy models in `backend/app/models/` for `User`, `Student`, `Teacher`, `Parent`, `Admission`, `Assignment`, `Submission`, `Grade`, `Announcement`, `Event`, and `Gallery`. | ✅        | 2026-06-28 |
+| TASK-012 | Configure Alembic files `backend/alembic.ini`, `backend/alembic/env.py`, and initial migration under `backend/alembic/versions/` for all entities and foreign keys.                     | ✅        | 2026-06-28 |
+| TASK-013 | Add enum definitions in `backend/app/models/enums.py` for user roles and admission status with migration-safe value handling.                                                           | ✅        | 2026-06-28 |
+| TASK-014 | Add indexing strategy migration for frequent query fields (`email`, `role`, `student_id`, `assignment_id`, `event_date`, `published_at`).                                               | ✅        | 2026-06-28 |
+| TASK-015 | Add seed script `backend/scripts/seed_dev_data.py` with fixed random seed and idempotent upsert behavior.                                                                               | ✅        | 2026-06-28 |
 
 ### Implementation Phase 4
 
