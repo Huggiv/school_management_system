@@ -15,7 +15,8 @@ export function useBulkUpdateAdmissionsStatus() {
 
   return useMutation({
     mutationFn: async (payload: BulkStatusPayload) => {
-      await apiClient.patch("/api/v1/admissions/bulk-status", payload);
+      const { data } = await apiClient.patch<{ updated: number }>("/api/v1/admissions/bulk-status", payload);
+      return data.updated;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admissions-management"] });

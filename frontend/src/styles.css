@@ -345,6 +345,16 @@ a {
   padding: 0.7rem 0.8rem;
 }
 
+.form-submit-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-submit-row button {
+  min-width: 180px;
+}
+
 .admission-status {
   display: inline-flex;
   align-items: center;
@@ -421,6 +431,21 @@ a {
 .table-wrap {
   width: 100%;
   overflow-x: auto;
+}
+
+.admissions-grid-wrap {
+  width: 100%;
+  min-height: 520px;
+}
+
+.admissions-grid-wrap .ag-root-wrapper {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.bulk-feedback {
+  color: #0c5f81;
+  font-size: 0.85rem;
 }
 
 .note-item {

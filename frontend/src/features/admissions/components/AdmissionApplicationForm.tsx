@@ -279,9 +279,11 @@ export function AdmissionApplicationForm() {
         )}
       </label>
 
-      <button type="submit" disabled={createAdmission.isPending}>
-        {createAdmission.isPending ? "Submitting..." : "Submit Application"}
-      </button>
+      <div className="form-submit-row">
+        <button type="submit" disabled={createAdmission.isPending}>
+          {createAdmission.isPending ? "Submitting..." : "Submit Application"}
+        </button>
+      </div>
     </form>
   );
 }

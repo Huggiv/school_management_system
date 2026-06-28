@@ -1,141 +1,124 @@
-import { AdmissionStatusBadge } from "@/features/admissions/components/AdmissionStatusBadge";
-import type { AdmissionRecord, AdmissionStatusOption } from "@/features/admissions/types";
+import { useEffect, useMemo, useRef } from "react";
+import type { ColDef, ICellRendererParams } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
 
-interface AdmissionsTableFilters {
-  application: string;
-  student: string;
-  status: AdmissionStatusOption;
-  className: string;
-  submittedDate: string;
-}
+import type { AdmissionRecord } from "@/features/admissions/types";
 
-interface AdmissionsTableFilterHandlers {
-  application: (value: string) => void;
-  student: (value: string) => void;
-  status: (value: AdmissionStatusOption) => void;
-  className: (value: string) => void;
-  submittedDate: (value: string) => void;
-}
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 
 interface AdmissionsTableProps {
   items: AdmissionRecord[];
-  filters: AdmissionsTableFilters;
-  onFilterChange: AdmissionsTableFilterHandlers;
   selectedIds: number[];
-  onToggleSelect: (id: number) => void;
-  onToggleSelectAll: () => void;
+  onSelectionChange: (ids: number[]) => void;
   onOpenNotes: (item: AdmissionRecord) => void;
 }
 
 export function AdmissionsTable({
   items,
-  filters,
-  onFilterChange,
   selectedIds,
-  onToggleSelect,
-  onToggleSelectAll,
+  onSelectionChange,
   onOpenNotes,
 }: AdmissionsTableProps) {
-  if (!items.length) {
-    return <p>No admission applications found.</p>;
-  }
+  const gridRef = useRef<AgGridReact<AdmissionRecord>>(null);
+  const columnDefs = useMemo<ColDef<AdmissionRecord>[]>(
+    () => [
+      {
+        headerName: "Select",
+        checkboxSelection: true,
+        headerCheckboxSelection: true,
+        headerCheckboxSelectionFilteredOnly: true,
+        filter: false,
+        floatingFilter: false,
+        width: 96,
+        pinned: "left",
+      },
+      {
+        field: "application_number",
+        headerName: "Application",
+        filter: "agTextColumnFilter",
+        minWidth: 170,
+      },
+      {
+        field: "student_name",
+        headerName: "Student",
+        filter: "agTextColumnFilter",
+        minWidth: 180,
+      },
+      {
+        field: "class_name",
+        headerName: "Class",
+        filter: "agTextColumnFilter",
+        valueFormatter: ({ value }) => value || "-",
+        minWidth: 140,
+      },
+      {
+        field: "status",
+        headerName: "Status",
+        filter: "agSetColumnFilter",
+        minWidth: 150,
+      },
+      {
+        field: "created_at",
+        headerName: "Submitted",
+        filter: "agDateColumnFilter",
+        valueFormatter: ({ value }) => (value ? new Date(value).toLocaleDateString() : "-"),
+        minWidth: 150,
+      },
+      {
+        headerName: "Actions",
+        filter: false,
+        floatingFilter: false,
+        sortable: false,
+        minWidth: 120,
+        cellRenderer: (params: ICellRendererParams<AdmissionRecord>) => (
+          <button type="button" onClick={() => params.data && onOpenNotes(params.data)}>
+            Notes
+          </button>
+        ),
+      },
+    ],
+    [onOpenNotes],
+  );
 
-  const allSelected = items.length > 0 && items.every((item) => selectedIds.includes(item.id));
+  useEffect(() => {
+    const api = gridRef.current?.api;
+    if (!api) {
+      return;
+    }
+
+    api.forEachNode((node) => {
+      const nodeId = node.data?.id;
+      if (typeof nodeId === "number") {
+        node.setSelected(selectedIds.includes(nodeId));
+      }
+    });
+  }, [selectedIds]);
 
   return (
-    <table className="table">
-      <thead>
-        <tr>
-          <th>
-            <input
-              type="checkbox"
-              aria-label="Select all admissions"
-              checked={allSelected}
-              onChange={onToggleSelectAll}
-            />
-          </th>
-          <th>Application</th>
-          <th>Student</th>
-          <th>Class</th>
-          <th>Status</th>
-          <th>Submitted</th>
-          <th>Actions</th>
-        </tr>
-        <tr className="table-filter-row">
-          <th></th>
-          <th>
-            <input
-              type="text"
-              placeholder="Filter application"
-              value={filters.application}
-              onChange={(event) => onFilterChange.application(event.target.value)}
-            />
-          </th>
-          <th>
-            <input
-              type="text"
-              placeholder="Filter student"
-              value={filters.student}
-              onChange={(event) => onFilterChange.student(event.target.value)}
-            />
-          </th>
-          <th>
-            <input
-              type="text"
-              placeholder="Filter class"
-              value={filters.className}
-              onChange={(event) => onFilterChange.className(event.target.value)}
-            />
-          </th>
-          <th>
-            <select
-              value={filters.status}
-              onChange={(event) => onFilterChange.status(event.target.value as AdmissionStatusOption)}
-            >
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="under_review">Under Review</option>
-              <option value="waitlisted">Waitlisted</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </th>
-          <th>
-            <input
-              type="date"
-              value={filters.submittedDate}
-              onChange={(event) => onFilterChange.submittedDate(event.target.value)}
-            />
-          </th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((item) => (
-          <tr key={item.id}>
-            <td>
-              <input
-                type="checkbox"
-                aria-label={`Select admission ${item.application_number}`}
-                checked={selectedIds.includes(item.id)}
-                onChange={() => onToggleSelect(item.id)}
-              />
-            </td>
-            <td>{item.application_number}</td>
-            <td>{item.student_name}</td>
-            <td>{item.class_name || "-"}</td>
-            <td>
-              <AdmissionStatusBadge status={item.status} />
-            </td>
-            <td>{item.created_at ? new Date(item.created_at).toLocaleDateString() : "-"}</td>
-            <td>
-              <button type="button" onClick={() => onOpenNotes(item)}>
-                Notes
-              </button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="admissions-grid-wrap ag-theme-quartz">
+      <AgGridReact<AdmissionRecord>
+        ref={gridRef}
+        rowData={items}
+        columnDefs={columnDefs}
+        rowSelection="multiple"
+        suppressRowClickSelection
+        pagination
+        paginationPageSize={10}
+        animateRows
+        getRowId={(params) => String(params.data.id)}
+        defaultColDef={{
+          sortable: true,
+          filter: true,
+          floatingFilter: true,
+          resizable: true,
+        }}
+        overlayNoRowsTemplate="No admission applications found."
+        onSelectionChanged={() => {
+          const selected = gridRef.current?.api.getSelectedRows() ?? [];
+          onSelectionChange(selected.map((row) => row.id));
+        }}
+      />
+    </div>
   );
 }
