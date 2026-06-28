@@ -1,18 +1,13 @@
 import { useMemo, useState } from "react";
 
-import {
-  AdmissionFilters,
-  type AdmissionExportColumn,
-} from "@/features/admissions/components/AdmissionFilters";
+import { AdmissionFilters } from "@/features/admissions/components/AdmissionFilters";
 import { AdmissionsTable } from "@/features/admissions/components/AdmissionsTable";
-import { useAdmissionExport } from "@/features/admissions/hooks/useAdmissionExport";
 import {
   useAddAdmissionNote,
   useAdmissionDecisionLog,
   useAdmissionNotes,
 } from "@/features/admissions/hooks/useAdmissionNotes";
 import { useAdmissionsManagement } from "@/features/admissions/hooks/useAdmissionsManagement";
-import { useAssignAdmissionReviewer } from "@/features/admissions/hooks/useAssignAdmissionReviewer";
 import { useBulkUpdateAdmissionsStatus } from "@/features/admissions/hooks/useBulkUpdateAdmissionsStatus";
 import type { AdmissionRecord, AdmissionStatusOption } from "@/features/admissions/types";
 
@@ -25,15 +20,8 @@ export function ApplicationManagementPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkStatus, setBulkStatus] = useState<Exclude<AdmissionStatusOption, "all">>("pending");
   const [decisionReason, setDecisionReason] = useState("");
-  const [reviewerName, setReviewerName] = useState("");
   const [activeAdmission, setActiveAdmission] = useState<AdmissionRecord | null>(null);
   const [noteText, setNoteText] = useState("");
-  const [exportColumns, setExportColumns] = useState<AdmissionExportColumn[]>([
-    "application_number",
-    "student_name",
-    "class_name",
-    "status",
-  ]);
 
   const managementFilters = useMemo(
     () => ({
@@ -48,9 +36,7 @@ export function ApplicationManagementPage() {
 
   const { data } = useAdmissionsManagement(managementFilters);
   const filtered = data?.items ?? [];
-  const exportAdmissions = useAdmissionExport();
   const bulkStatusMutation = useBulkUpdateAdmissionsStatus();
-  const assignReviewerMutation = useAssignAdmissionReviewer();
   const { data: notes = [] } = useAdmissionNotes(activeAdmission?.id ?? null);
   const { data: decisionLog = [] } = useAdmissionDecisionLog(activeAdmission?.id ?? null);
   const addNoteMutation = useAddAdmissionNote(activeAdmission?.id ?? null);
@@ -81,14 +67,11 @@ export function ApplicationManagementPage() {
           classNameFilter={classNameFilter}
           fromDate={fromDate}
           toDate={toDate}
-          exportColumns={exportColumns}
           onSearchChange={setSearch}
           onStatusChange={setStatusFilter}
           onClassNameChange={setClassNameFilter}
           onFromDateChange={setFromDate}
           onToDateChange={setToDate}
-          onExportColumnsChange={setExportColumns}
-          onExport={() => exportAdmissions(filtered, exportColumns)}
         />
 
         <div className="toolbar management-actions">
@@ -126,29 +109,6 @@ export function ApplicationManagementPage() {
             }}
           >
             Apply Status to Selected
-          </button>
-
-          <input
-            type="text"
-            placeholder="Reviewer name"
-            value={reviewerName}
-            onChange={(event) => setReviewerName(event.target.value)}
-          />
-          <button
-            type="button"
-            disabled={!hasSelection || !reviewerName.trim() || assignReviewerMutation.isPending}
-            onClick={() => {
-              assignReviewerMutation.mutate(
-                { ids: selectedIds, reviewer_name: reviewerName.trim() },
-                {
-                  onSuccess: () => {
-                    setSelectedIds([]);
-                  },
-                },
-              );
-            }}
-          >
-            Assign Reviewer to Selected
           </button>
         </div>
 

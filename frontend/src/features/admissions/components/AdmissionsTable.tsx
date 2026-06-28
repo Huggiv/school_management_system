@@ -37,7 +37,6 @@ export function AdmissionsTable({
           <th>Application</th>
           <th>Student</th>
           <th>Class</th>
-          <th>Reviewer</th>
           <th>Status</th>
           <th>Submitted</th>
           <th>Actions</th>
@@ -57,7 +56,6 @@ export function AdmissionsTable({
             <td>{item.application_number}</td>
             <td>{item.student_name}</td>
             <td>{item.class_name || "-"}</td>
-            <td>{item.reviewer_name || "Unassigned"}</td>
             <td>
               <AdmissionStatusBadge status={item.status} />
             </td>
