@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { AdmissionsTable } from "@/features/admissions/components/AdmissionsTable";
 import {
@@ -9,7 +10,7 @@ import {
 import { useAdmissionsManagement } from "@/features/admissions/hooks/useAdmissionsManagement";
 import { useBulkUpdateAdmissionsStatus } from "@/features/admissions/hooks/useBulkUpdateAdmissionsStatus";
 import type { AdmissionRecord, AdmissionStatusOption } from "@/features/admissions/types";
-import { mapApiError } from "@/lib/api/client";
+import { apiClient, mapApiError } from "@/lib/api/client";
 
 const ALLOWED_STATUS_TRANSITIONS: Record<Exclude<AdmissionStatusOption, "all">, Exclude<AdmissionStatusOption, "all">[]> = {
   pending: ["under_review"],
@@ -20,6 +21,7 @@ const ALLOWED_STATUS_TRANSITIONS: Record<Exclude<AdmissionStatusOption, "all">, 
 };
 
 export function ApplicationManagementPage() {
+  const queryClient = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkStatus, setBulkStatus] = useState<Exclude<AdmissionStatusOption, "all">>("pending");
   const [decisionReason, setDecisionReason] = useState("");
@@ -32,6 +34,50 @@ export function ApplicationManagementPage() {
   const { data } = useAdmissionsManagement(managementFilters);
   const allItems = useMemo(() => data?.items ?? [], [data?.items]);
 
+  const tableItems = useMemo(
+    () =>
+      allItems.map((item) => {
+        let documentPath: string | undefined;
+        try {
+          const notes = JSON.parse(item.notes_json ?? "[]") as Array<{ document_path?: string }>;
+          for (let idx = notes.length - 1; idx >= 0; idx -= 1) {
+            const path = notes[idx]?.document_path;
+            if (path && typeof path === "string") {
+              documentPath = path;
+              break;
+            }
+          }
+        } catch {
+          documentPath = undefined;
+        }
+        return {
+          ...item,
+          document_path: documentPath,
+        };
+      }),
+    [allItems],
+  );
+
+  const updateAdmissionMutation = useMutation({
+    mutationFn: async ({ itemId, payload }: { itemId: number; payload: Record<string, string | null> }) => {
+      await apiClient.put(`/api/v1/admissions/${itemId}`, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admissions-management"] });
+      queryClient.invalidateQueries({ queryKey: ["admissions"] });
+    },
+  });
+
+  const deleteAdmissionMutation = useMutation({
+    mutationFn: async (itemId: number) => {
+      await apiClient.delete(`/api/v1/admissions/${itemId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admissions-management"] });
+      queryClient.invalidateQueries({ queryKey: ["admissions"] });
+    },
+  });
+
   const bulkStatusMutation = useBulkUpdateAdmissionsStatus();
   const { data: notes = [] } = useAdmissionNotes(activeAdmission?.id ?? null);
   const { data: decisionLog = [] } = useAdmissionDecisionLog(activeAdmission?.id ?? null);
@@ -39,21 +85,24 @@ export function ApplicationManagementPage() {
 
   const hasSelection = selectedIds.length > 0;
   const selectedRows = useMemo(
-    () => allItems.filter((item) => selectedIds.includes(item.id)),
-    [allItems, selectedIds],
+    () => tableItems.filter((item) => selectedIds.includes(item.id)),
+    [tableItems, selectedIds],
   );
-  const canApplySelectedStatus = useMemo(
+  const eligibleSelectedIds = useMemo(
     () =>
-      selectedRows.every((item) => {
-        const current = item.status as Exclude<AdmissionStatusOption, "all">;
-        const allowedTargets = ALLOWED_STATUS_TRANSITIONS[current];
-        if (!allowedTargets) {
-          return true;
-        }
-        return current === bulkStatus || allowedTargets.includes(bulkStatus);
-      }),
+      selectedRows
+        .filter((item) => {
+          const current = item.status as Exclude<AdmissionStatusOption, "all">;
+          const allowedTargets = ALLOWED_STATUS_TRANSITIONS[current];
+          if (!allowedTargets) {
+            return true;
+          }
+          return current === bulkStatus || allowedTargets.includes(bulkStatus);
+        })
+        .map((item) => item.id),
     [bulkStatus, selectedRows],
   );
+  const blockedTransitionCount = selectedRows.length - eligibleSelectedIds.length;
 
   return (
     <main className="container page-stack">
@@ -76,12 +125,12 @@ export function ApplicationManagementPage() {
           />
           <button
             type="button"
-            disabled={!hasSelection || !decisionReason.trim() || !canApplySelectedStatus || bulkStatusMutation.isPending}
+            disabled={!hasSelection || !decisionReason.trim() || eligibleSelectedIds.length === 0 || bulkStatusMutation.isPending}
             onClick={() => {
               setBulkFeedback(null);
               bulkStatusMutation.mutate(
                 {
-                  ids: selectedIds,
+                  ids: eligibleSelectedIds,
                   status: bulkStatus,
                   actor: "admin",
                   reason: decisionReason.trim(),
@@ -90,11 +139,15 @@ export function ApplicationManagementPage() {
                   onSuccess: (updatedCount) => {
                     setSelectedIds([]);
                     setDecisionReason("");
-                    setBulkFeedback(
+                    const updatedMessage =
                       updatedCount > 0
                         ? `Bulk status update completed for ${updatedCount} application${updatedCount === 1 ? "" : "s"}.`
-                        : "Bulk status update finished with no record changes.",
-                    );
+                        : "Bulk status update finished with no record changes.";
+                    const skippedMessage =
+                      blockedTransitionCount > 0
+                        ? ` Skipped ${blockedTransitionCount} application${blockedTransitionCount === 1 ? "" : "s"} due to invalid status transition.`
+                        : "";
+                    setBulkFeedback(`${updatedMessage}${skippedMessage}`);
                   },
                   onError: (error) => {
                     setBulkFeedback(`Bulk status update failed. ${mapApiError(error).message}`);
@@ -105,20 +158,84 @@ export function ApplicationManagementPage() {
           >
             Apply Status to Selected
           </button>
-          {!canApplySelectedStatus && hasSelection ? (
-            <small className="field-error">Some selected applications cannot move to this status. Choose a valid transition.</small>
+          {blockedTransitionCount > 0 && hasSelection ? (
+            <small className="field-error">
+              {blockedTransitionCount} selected application{blockedTransitionCount === 1 ? "" : "s"} cannot move to this status and will be skipped.
+            </small>
           ) : null}
           {bulkFeedback ? <small className="bulk-feedback">{bulkFeedback}</small> : null}
         </div>
 
         <div className="table-wrap">
           <AdmissionsTable
-            items={allItems}
+            items={tableItems}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             onOpenNotes={(item) => {
               setActiveAdmission(item);
               setNoteText("");
+            }}
+            onUpdateRow={(item) => {
+              const nextStudent = window.prompt("Student name", item.student_name);
+              if (nextStudent === null) {
+                return;
+              }
+              const nextClassName = window.prompt("Class / Grade", item.class_name ?? "");
+              if (nextClassName === null) {
+                return;
+              }
+
+              updateAdmissionMutation.mutate(
+                {
+                  itemId: item.id,
+                  payload: {
+                    student_name: nextStudent.trim(),
+                    class_name: nextClassName.trim() || null,
+                  },
+                },
+                {
+                  onSuccess: () => {
+                    setBulkFeedback(`Updated application ${item.application_number}.`);
+                  },
+                  onError: (error) => {
+                    setBulkFeedback(`Update failed. ${mapApiError(error).message}`);
+                  },
+                },
+              );
+            }}
+            onDeleteRow={(item) => {
+              const confirmed = window.confirm(`Delete admission ${item.application_number}? This cannot be undone.`);
+              if (!confirmed) {
+                return;
+              }
+              deleteAdmissionMutation.mutate(item.id, {
+                onSuccess: () => {
+                  setBulkFeedback(`Deleted application ${item.application_number}.`);
+                },
+                onError: (error) => {
+                  setBulkFeedback(`Delete failed. ${mapApiError(error).message}`);
+                },
+              });
+            }}
+            onDownloadDoc={async (item) => {
+              if (!item.document_path) {
+                setBulkFeedback("No uploaded document found for this application.");
+                return;
+              }
+              try {
+                const { data: blob } = await apiClient.get(
+                  `/api/v1/files/download/${item.document_path}`,
+                  { responseType: "blob" },
+                );
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = objectUrl;
+                link.download = item.document_path.split("/").pop() || `${item.application_number}-document`;
+                link.click();
+                URL.revokeObjectURL(objectUrl);
+              } catch (error) {
+                setBulkFeedback(`Document download failed. ${mapApiError(error).message}`);
+              }
             }}
           />
         </div>

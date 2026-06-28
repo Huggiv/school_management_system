@@ -1,35 +1,59 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { apiClient } from "@/lib/api/client";
+
+interface AdmissionReportsPayload {
+  yearly: Array<{ year: number; count: number }>;
+  by_grade: Array<{ grade: string; count: number }>;
+  by_status: Array<{ status: string; count: number }>;
+}
+
 export function AdmissionReportsPage() {
-  const yearlyAdmissions = [
-    { year: 2022, count: 274 },
-    { year: 2023, count: 318 },
-    { year: 2024, count: 356 },
-    { year: 2025, count: 402 },
-    { year: 2026, count: 428 },
-  ];
+  const { data: reportData, isLoading: reportLoading } = useQuery({
+    queryKey: ["admissions-reports"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<AdmissionReportsPayload>("/api/v1/admissions/reports");
+      return data;
+    },
+  });
 
-  const admissionsByGrade = [
-    { grade: "Nursery", count: 34 },
-    { grade: "Kindergarten", count: 52 },
-    { grade: "Grade 1", count: 49 },
-    { grade: "Grade 2", count: 45 },
-    { grade: "Grade 3", count: 41 },
-    { grade: "Grade 4", count: 38 },
-    { grade: "Grade 5", count: 36 },
-    { grade: "Grade 6", count: 33 },
-  ];
+  const { data: dashboardKpis, isLoading: kpiLoading } = useQuery({
+    queryKey: ["dashboard-admin"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<Record<string, number>>("/api/v1/dashboard/admin");
+      return data;
+    },
+  });
 
-  const maxYearly = Math.max(...yearlyAdmissions.map((item) => item.count));
-  const maxByGrade = Math.max(...admissionsByGrade.map((item) => item.count));
+  const yearlyAdmissions = reportData?.yearly ?? [];
+  const admissionsByGrade = reportData?.by_grade ?? [];
+
+  const maxYearly = Math.max(1, ...yearlyAdmissions.map((item) => item.count));
+  const maxByGrade = Math.max(1, ...admissionsByGrade.map((item) => item.count));
 
   return (
     <main className="container page-stack">
       <section className="panel">
         <h1>Admission Reports</h1>
-        <p>Sample KPI snapshot for admissions trends and grade distribution.</p>
+        <p>Live KPI snapshot powered by admissions and dashboard data.</p>
+      </section>
+
+      <section className="panel">
+        <h2>Dashboard KPIs</h2>
+        {kpiLoading ? <p>Loading KPIs...</p> : null}
+        <div className="stats-grid compact">
+          {Object.entries(dashboardKpis ?? {}).map(([key, value]) => (
+            <article className="stat-card" key={key}>
+              <strong>{value}</strong>
+              <span>{key}</span>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="panel">
         <h2>Admissions Year by Year</h2>
+        {reportLoading ? <p>Loading yearly admissions...</p> : null}
         <div className="stats-grid compact">
           {yearlyAdmissions.map((item) => (
             <article className="stat-card" key={item.year}>
@@ -45,6 +69,7 @@ export function AdmissionReportsPage() {
 
       <section className="panel">
         <h2>Admissions by Grades</h2>
+        {reportLoading ? <p>Loading admissions by grade...</p> : null}
         <table className="table">
           <thead>
             <tr>

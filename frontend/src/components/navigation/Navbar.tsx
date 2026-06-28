@@ -5,7 +5,6 @@ import { useAuth } from "@/features/auth/AuthProvider";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home" },
-  { to: "/dashboard", label: "Dashboard" },
   { to: "/grade", label: "Grade" },
   { to: "/assignments", label: "Assignments" },
   { to: "/about", label: "About" },

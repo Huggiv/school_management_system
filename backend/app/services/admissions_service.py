@@ -136,6 +136,58 @@ class AdmissionsService(CRUDService):
         )
         return {"items": items, "page": page, "size": size, "total": total}
 
+    def report_metrics(self, db: Session) -> dict[str, Any]:
+        year_rows = (
+            db.execute(
+                select(
+                    func.extract("year", Admission.created_at).label("year"),
+                    func.count(Admission.id).label("count"),
+                )
+                .group_by(func.extract("year", Admission.created_at))
+                .order_by(func.extract("year", Admission.created_at))
+            )
+            .all()
+        )
+
+        grade_rows = (
+            db.execute(
+                select(Admission.class_name, func.count(Admission.id).label("count"))
+                .where(Admission.class_name.is_not(None))
+                .group_by(Admission.class_name)
+                .order_by(func.count(Admission.id).desc())
+            )
+            .all()
+        )
+
+        status_rows = (
+            db.execute(
+                select(Admission.status, func.count(Admission.id).label("count"))
+                .group_by(Admission.status)
+                .order_by(func.count(Admission.id).desc())
+            )
+            .all()
+        )
+
+        return {
+            "yearly": [
+                {"year": int(row.year), "count": int(row.count)}
+                for row in year_rows
+                if row.year is not None
+            ],
+            "by_grade": [
+                {"grade": str(row.class_name), "count": int(row.count)}
+                for row in grade_rows
+                if row.class_name
+            ],
+            "by_status": [
+                {
+                    "status": row.status.value if hasattr(row.status, "value") else str(row.status),
+                    "count": int(row.count),
+                }
+                for row in status_rows
+            ],
+        }
+
     def update(self, db: Session, item_id: int, payload: dict[str, Any]) -> Any:
         admission = self.get(db, item_id)
 

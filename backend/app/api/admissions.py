@@ -53,6 +53,14 @@ def list_admissions_management(
     }
 
 
+@router.get("/reports")
+def admission_reports(
+    _: Any = Depends(require_roles(UserRole.ADMINISTRATOR, UserRole.PRINCIPAL)),
+    db: Session = Depends(get_db_session),
+) -> dict[str, Any]:
+    return service.report_metrics(db)
+
+
 @router.patch("/bulk-status")
 def bulk_update_status(
     payload: dict[str, Any] = Body(...),

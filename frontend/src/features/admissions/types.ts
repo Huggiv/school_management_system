@@ -8,6 +8,7 @@ export interface AdmissionRecord {
   reviewer_name?: string | null;
   notes_json?: string;
   decision_log_json?: string;
+  document_path?: string;
   created_at?: string;
   status: string;
 }

@@ -37,6 +37,7 @@ export function useCreateAdmission() {
           {
             author: "system",
             note: `Application submitted${uploadedPath ? " with supporting document" : ""}`,
+            document_path: uploadedPath || undefined,
             timestamp: new Date().toISOString(),
           },
         ]),

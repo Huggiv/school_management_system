@@ -38,6 +38,10 @@ a {
   padding: 1.25rem 1rem 2rem;
 }
 
+.container.page-stack {
+  max-width: 100%;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -435,12 +439,87 @@ a {
 
 .admissions-grid-wrap {
   width: 100%;
-  min-height: 520px;
+  height: 520px;
+}
+
+.admissions-grid-wrap.ag-theme-quartz {
+  --ag-header-height: 44px;
+  --ag-row-height: 44px;
+  --ag-font-size: 13px;
+  --ag-borders: solid 1px;
+  --ag-border-color: var(--line);
+  --ag-header-background-color: #eef5ff;
+  --ag-odd-row-background-color: #fbfdff;
+  --ag-selected-row-background-color: #e7f3ff;
 }
 
 .admissions-grid-wrap .ag-root-wrapper {
   border-radius: 12px;
   border: 1px solid var(--line);
+}
+
+.admissions-grid-wrap .ag-header-cell-label {
+  gap: 0.3rem;
+}
+
+.ag-status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.16rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.ag-status-pill.accepted {
+  background: #d9f7e6;
+  color: #0f5b31;
+}
+
+.ag-status-pill.other {
+  background: #ecf2ff;
+  color: #244a84;
+}
+
+.grid-row-actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.icon-action-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f7ff;
+  color: #1d4d86;
+  border: 1px solid #cfe0f4;
+}
+
+.icon-action-button svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.icon-action-button:hover:not(:disabled) {
+  background: #e4effd;
+}
+
+.icon-action-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.icon-action-button.danger {
+  background: #ffe9ea;
+  color: #a41217;
+  border-color: #f3c4c7;
 }
 
 .bulk-feedback {
