@@ -224,6 +224,47 @@ a {
   margin-bottom: 0.8rem;
 }
 
+.admission-ops-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1rem;
+  padding: 1.25rem 1rem 2rem;
+}
+
+.admission-side-nav {
+  align-self: start;
+  position: sticky;
+  top: 84px;
+}
+
+.admission-side-nav h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.admission-side-nav-links {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.admission-side-nav-link {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.52rem 0.7rem;
+  background: #fff;
+}
+
+.admission-side-nav-link.active {
+  background: #e9f6fb;
+  border-color: #8bcde0;
+  color: #0a5978;
+  font-weight: 600;
+}
+
+.admission-ops-content {
+  min-width: 0;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -301,5 +342,13 @@ button,
   .auth-btn {
     border-radius: 8px;
     text-align: left;
+  }
+
+  .admission-ops-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admission-side-nav {
+    position: static;
   }
 }

@@ -2,7 +2,13 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Navbar } from "@/components/navigation/Navbar";
-import { AdmissionPage } from "@/features/admissions/AdmissionPage";
+import { AdmissionOpsLayout } from "@/features/admissions/components/AdmissionOpsLayout";
+import { AdmissionReportsPage } from "@/features/admissions/pages/AdmissionReportsPage";
+import { AdmissionRootRedirect } from "@/features/admissions/pages/AdmissionRootRedirect";
+import { ApplicationManagementPage } from "@/features/admissions/pages/ApplicationManagementPage";
+import { DecisionHistoryPage } from "@/features/admissions/pages/DecisionHistoryPage";
+import { NewAdmissionPage } from "@/features/admissions/pages/NewAdmissionPage";
+import { ReviewQueuePage } from "@/features/admissions/pages/ReviewQueuePage";
 import { AssignmentsPage } from "@/features/assignments/AssignmentsPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { GradePage } from "@/features/grades/GradePage";
@@ -127,10 +133,20 @@ export function AppRouter() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admission" element={<AdmissionPage />} />
+          <Route path="/admission" element={<AdmissionRootRedirect />} />
+          <Route path="/admission/new" element={<NewAdmissionPage />} />
           <Route path="/grade" element={<GradePage />} />
           <Route path="/assignments" element={<AssignmentsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={["administrator", "principal"]} />}>
+          <Route path="/admission" element={<AdmissionOpsLayout />}>
+            <Route path="manage" element={<ApplicationManagementPage />} />
+            <Route path="review" element={<ReviewQueuePage />} />
+            <Route path="history" element={<DecisionHistoryPage />} />
+            <Route path="reports" element={<AdmissionReportsPage />} />
+          </Route>
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["administrator", "principal"]} />}>

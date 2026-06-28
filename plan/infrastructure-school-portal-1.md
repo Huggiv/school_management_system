@@ -229,3 +229,176 @@ This plan defines deterministic implementation tasks to build the School Managem
 - <https://vite.dev/>
 - <https://tanstack.com/query/latest>
 - <https://docs.docker.com/compose/>
+
+## 9. Implemented Feature Analysis Snapshot (2026-06-28)
+
+The current delivery has completed all planned tasks through TASK-050 and is production-capable for the MVP scope. Key observations for enhancement planning are listed below.
+
+- **Backend Coverage**: Required domain APIs, role guards, JWT auth, migrations, and Docker Compose deployment are in place.
+- **Frontend Coverage**: Core role-based routing and feature pages are available for admissions, grades, assignments, dashboards, and authentication.
+- **Admissions Baseline**: Admission submission and application listing/filter/export are implemented in one page, with role-gated management visible to administrator/principal users.
+- **Primary Gap for Next Iteration**: Admission experience is functionally complete but can be improved through workflow separation (new application vs management), stronger field validation, and improved navigation for admin operations.
+- **School Development Gap**: There is no dedicated School Development Activities module for planning/tracking co-curricular growth, staff development programs, infrastructure initiatives, or community engagement activities.
+
+## 10. Future Enhancement Plan (Post-MVP)
+
+### Enhancement Phase 11
+
+- **GOAL-011**: Introduce School Development Activities management to support institutional growth planning and tracking.
+- **Completion Criteria**: School development activities can be created, reviewed, assigned, tracked by status/timeline, and reported by category and owner.
+
+| Task     | Description                                                                                                                                                                                                                      | Completed | Date |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
+| TASK-051 | Create School Development Activities domain model and migration in backend with fields: `title`, `category`, `description`, `owner_role`, `owner_user_id`, `start_date`, `end_date`, `status`, `budget_estimate`, `impact_notes`. | ⬜        | -    |
+| TASK-052 | Add backend module (`api`, `service`, `repository`) for School Development Activities with role-based permissions: admin/principal full access, teacher proposal access, parent/student read-only for published activities.        | ⬜        | -    |
+| TASK-053 | Build frontend School Development Activities pages for planning board, timeline view, and progress dashboard widgets; include status tags, overdue indicators, and category filters.                                             | ⬜        | -    |
+| TASK-054 | Add KPI aggregation endpoint and UI cards for development metrics (active initiatives, completion rate, delayed initiatives, category distribution, term-over-term trend).                                                       | ⬜        | -    |
+| TASK-055 | Add tests for School Development Activities backend and frontend (unit/integration/e2e) including role-access checks and activity lifecycle transitions.                                                                       | ⬜        | -    |
+
+### Enhancement Phase 12
+
+- **GOAL-012**: Modernize Admission workflow with dedicated admin navigation, clearer application lifecycle management, and robust form validation.
+- **Completion Criteria**: Admission UX separates applicant and admin flows, uses validated modern form components, and supports efficient application triage.
+
+| Task     | Description                                                                                                                                                                                                                       | Completed | Date |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
+| TASK-056 | Add admission side navigation for admin/principal users with explicit sections: `New Admission`, `Application Management`, `Review Queue`, `Decision History`, and `Reports`.                                                   | ✅        | 2026-06-28 |
+| TASK-057 | Refactor frontend admission page into modular routes/components to separate new application form from application management table and review workflow.                                                                           | ⬜        | -    |
+| TASK-058 | Modernize Admission fill form with schema-based validation (Zod + React Hook Form resolver), inline field errors, accessible error summary, conditional fields, and masked input for phone/date fields.                         | ⬜        | -    |
+| TASK-059 | Add application management enhancements: bulk status actions, reviewer assignment, note history, advanced filters (status/date/class), and CSV export with selected columns.                                                     | ⬜        | -    |
+| TASK-060 | Add backend admission workflow extensions for reviewer notes, state transition rules, and audit logging of decision actions (pending -> under_review -> accepted/rejected/waitlisted).                                           | ⬜        | -    |
+| TASK-061 | Add admission-focused quality gates: validation rule unit tests, role-based integration tests, and e2e coverage for new submission + admin management via side navigation.                                                      | ⬜        | -    |
+
+## 11. Suggested Priority Order
+
+1. Implement TASK-056 to TASK-058 first (highest UX and correctness impact for daily operations).
+2. Implement TASK-059 to TASK-061 second (workflow efficiency and governance).
+3. Execute TASK-051 to TASK-055 as the next strategic track for school development activities.
+
+## 12. Detailed Implementation Checklist (TASK-056 to TASK-058)
+
+This section translates TASK-056 to TASK-058 into file-by-file implementation actions with explicit acceptance criteria.
+
+### 12.1 TASK-056: Admission Side Navigation for Admin/Principal
+
+**Objective**: Provide dedicated navigation context for admissions operations so admin/principal users can quickly switch between applicant entry and application management workflows.
+
+**Implementation Actions**
+
+1. Update route definitions in `frontend/src/router/index.tsx`:
+	- Add nested admission routes:
+	  - `/admission/new`
+	  - `/admission/manage`
+	  - `/admission/review`
+	  - `/admission/history`
+	  - `/admission/reports`
+	- Keep `/admission` as role-aware redirect:
+	  - admin/principal -> `/admission/manage`
+	  - other roles -> `/admission/new`
+2. Add admission operations layout wrapper in `frontend/src/features/admissions/components/AdmissionOpsLayout.tsx`:
+	- Left side nav with sections:
+	  - New Admission
+	  - Application Management
+	  - Review Queue
+	  - Decision History
+	  - Reports
+	- Main content outlet for nested routes.
+3. Create side nav component in `frontend/src/features/admissions/components/AdmissionSideNav.tsx`:
+	- Use `NavLink` active styles.
+	- Hide management links for non-admin/principal users.
+4. Update top navigation in `frontend/src/components/navigation/Navbar.tsx`:
+	- Point Admission menu item to `/admission` (redirect-based entry retained).
+	- Keep existing menu structure while enabling deep-link access via nested routes.
+
+**Acceptance Criteria**
+
+- Admin and principal users can access all five admission operation sections via left side nav.
+- Student/parent/teacher users can only access new admission flow and are blocked from management routes.
+- Direct URL navigation to admission sub-routes enforces role constraints and shows the correct page.
+
+### 12.2 TASK-057: Refactor Admission Into Modular Flows
+
+**Objective**: Replace the current single-page mixed experience with focused, maintainable admission modules.
+
+**Implementation Actions**
+
+1. Split existing `frontend/src/features/admissions/AdmissionPage.tsx` into route-focused pages:
+	- `frontend/src/features/admissions/pages/NewAdmissionPage.tsx`
+	- `frontend/src/features/admissions/pages/ApplicationManagementPage.tsx`
+	- `frontend/src/features/admissions/pages/ReviewQueuePage.tsx`
+	- `frontend/src/features/admissions/pages/DecisionHistoryPage.tsx`
+	- `frontend/src/features/admissions/pages/AdmissionReportsPage.tsx`
+2. Create reusable components:
+	- `frontend/src/features/admissions/components/AdmissionApplicationForm.tsx`
+	- `frontend/src/features/admissions/components/AdmissionsTable.tsx`
+	- `frontend/src/features/admissions/components/AdmissionFilters.tsx`
+	- `frontend/src/features/admissions/components/AdmissionStatusBadge.tsx`
+3. Create shared API hooks in `frontend/src/features/admissions/hooks/`:
+	- `useAdmissionsList.ts`
+	- `useCreateAdmission.ts`
+	- `useAdmissionExport.ts`
+4. Keep backward-compatible route entry at `/admission` by rendering layout + redirect logic; remove duplicated business logic from old monolithic page.
+
+**Acceptance Criteria**
+
+- No admission page contains both applicant form and management table in the same screen for admin/principal.
+- Shared logic for list/create/export is reused through hooks and not duplicated across pages.
+- Existing admission API endpoints remain unchanged during this refactor.
+
+### 12.3 TASK-058: Modernize Admission Form Validation
+
+**Objective**: Improve data quality and usability with a schema-driven validation system and accessible feedback.
+
+**Implementation Actions**
+
+1. Add dependencies to `frontend/package.json`:
+	- `zod`
+	- `@hookform/resolvers`
+2. Add form schema in `frontend/src/features/admissions/validation/admissionSchema.ts`:
+	- Required: student name, date of birth, gender, parent name, address, grade applying for, contact number, email.
+	- Validation rules:
+	  - Name fields: min/max length and character constraints.
+	  - Date of birth: valid date, not in the future, minimum age boundary.
+	  - Email: RFC-compliant format.
+	  - Contact number: normalized + pattern check.
+	  - Grade applying for: allowed enum/list values.
+	  - Optional document: type and max size validation.
+3. Update form component in `frontend/src/features/admissions/components/AdmissionApplicationForm.tsx`:
+	- Integrate `zodResolver` with `react-hook-form`.
+	- Show inline error messages under each field.
+	- Add top error summary region with focus on submit failure.
+	- Add input masks/formatters for date and phone fields.
+4. Add conditional fields:
+	- Show previous school details only when transfer toggle is enabled.
+	- Show document upload requirement based on grade/transfer conditions.
+5. Accessibility hardening:
+	- Use `aria-invalid`, `aria-describedby`, and semantic `label` binding for all fields.
+	- Ensure keyboard navigation order and visible focus states are preserved.
+
+**Acceptance Criteria**
+
+- Invalid form submissions never call the create admission mutation.
+- Users receive clear inline and summary-level validation feedback.
+- Form passes keyboard-only completion flow and screen-reader field error announcements.
+
+### 12.4 Test & Verification Checklist for TASK-056 to TASK-058
+
+1. Unit tests:
+	- Add schema tests for each validation rule and edge case.
+	- Add component tests for side nav visibility by role.
+2. Integration tests:
+	- Verify route-level access control for admission sub-routes.
+	- Verify form submit payload shape for valid inputs.
+3. E2E tests:
+	- Admin flow: navigate side nav sections and filter applications.
+	- Applicant flow: submit new admission with valid and invalid cases.
+4. Regression checks:
+	- Confirm export CSV still works for management view.
+	- Confirm file upload path (`/api/v1/files/upload?category=admissions`) remains compatible.
+
+### 12.5 Delivery Sequence (Sprint-Friendly)
+
+1. Sprint A: TASK-056 route and side nav foundation.
+2. Sprint B: TASK-057 page/component split and hook extraction.
+3. Sprint C: TASK-058 validation modernization and accessibility pass.
+4. Sprint D: test hardening and stabilization.
