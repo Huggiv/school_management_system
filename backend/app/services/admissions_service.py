@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Any
 
 from fastapi import HTTPException, status
@@ -13,136 +13,297 @@ from app.models.enums import AdmissionStatus
 from app.repositories.admissions_repository import repository
 from app.services.crud_service import CRUDService
 
+ALLOWED_STATUS_TRANSITIONS: dict[AdmissionStatus, set[AdmissionStatus]] = {
+    AdmissionStatus.PENDING: {AdmissionStatus.UNDER_REVIEW},
+    AdmissionStatus.UNDER_REVIEW: {
+        AdmissionStatus.ACCEPTED,
+        AdmissionStatus.REJECTED,
+        AdmissionStatus.WAITLISTED,
+    },
+    AdmissionStatus.WAITLISTED: {
+        AdmissionStatus.UNDER_REVIEW,
+        AdmissionStatus.ACCEPTED,
+        AdmissionStatus.REJECTED,
+    },
+    AdmissionStatus.ACCEPTED: set(),
+    AdmissionStatus.REJECTED: set(),
+}
+
 
 class AdmissionsService(CRUDService):
-	def list_management(
-		self,
-		db: Session,
-		page: int,
-		size: int,
-		search: str | None,
-		status_filter: str | None,
-		class_name: str | None,
-		from_date: date | None,
-		to_date: date | None,
-	) -> dict[str, Any]:
-		query = select(Admission)
-		filters: list[Any] = []
+    def _parse_json_list(self, raw_value: str | None) -> list[dict[str, Any]]:
+        try:
+            parsed = json.loads(raw_value or "[]")
+            return parsed if isinstance(parsed, list) else []
+        except json.JSONDecodeError:
+            return []
 
-		if search:
-			search_expr = f"%{search}%"
-			filters.append(
-				or_(
-					Admission.application_number.ilike(search_expr),
-					Admission.student_name.ilike(search_expr),
-					Admission.class_name.ilike(search_expr),
-					Admission.reviewer_name.ilike(search_expr),
-					Admission.email.ilike(search_expr),
-				)
-			)
+    def _append_decision_log(
+        self,
+        admission: Admission,
+        from_status: AdmissionStatus,
+        to_status: AdmissionStatus,
+        actor: str,
+        reason: str,
+        source: str,
+    ) -> None:
+        decision_log = self._parse_json_list(admission.decision_log_json)
+        decision_log.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "actor": actor.strip() or "system",
+                "reason": reason.strip(),
+                "source": source,
+                "from_status": from_status.value,
+                "to_status": to_status.value,
+            }
+        )
+        admission.decision_log_json = json.dumps(decision_log)
 
-		if status_filter and status_filter != "all":
-			try:
-				filters.append(Admission.status == AdmissionStatus(status_filter))
-			except ValueError as exc:
-				raise HTTPException(
-					status_code=status.HTTP_400_BAD_REQUEST,
-					detail="Invalid admission status filter",
-				) from exc
+    def _enforce_transition(
+        self,
+        current_status: AdmissionStatus,
+        target_status: AdmissionStatus,
+    ) -> None:
+        if current_status == target_status:
+            return
 
-		if class_name and class_name != "all":
-			filters.append(Admission.class_name == class_name)
+        allowed_targets = ALLOWED_STATUS_TRANSITIONS.get(current_status, set())
+        if target_status not in allowed_targets:
+            allowed = sorted(item.value for item in allowed_targets)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "message": "Invalid admission status transition",
+                    "from": current_status.value,
+                    "to": target_status.value,
+                    "allowed": allowed,
+                },
+            )
 
-		if from_date:
-			filters.append(func.date(Admission.created_at) >= from_date)
+    def list_management(
+        self,
+        db: Session,
+        page: int,
+        size: int,
+        search: str | None,
+        status_filter: str | None,
+        class_name: str | None,
+        from_date: date | None,
+        to_date: date | None,
+    ) -> dict[str, Any]:
+        query = select(Admission)
+        filters: list[Any] = []
 
-		if to_date:
-			filters.append(func.date(Admission.created_at) <= to_date)
+        if search:
+            search_expr = f"%{search}%"
+            filters.append(
+                or_(
+                    Admission.application_number.ilike(search_expr),
+                    Admission.student_name.ilike(search_expr),
+                    Admission.class_name.ilike(search_expr),
+                    Admission.reviewer_name.ilike(search_expr),
+                    Admission.email.ilike(search_expr),
+                )
+            )
 
-		if filters:
-			query = query.where(and_(*filters))
+        if status_filter and status_filter != "all":
+            try:
+                filters.append(Admission.status == AdmissionStatus(status_filter))
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid admission status filter",
+                ) from exc
 
-		total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
-		items = (
-			db.execute(query.order_by(Admission.created_at.desc()).offset((page - 1) * size).limit(size))
-			.scalars()
-			.all()
-		)
-		return {"items": items, "page": page, "size": size, "total": total}
+        if class_name and class_name != "all":
+            filters.append(Admission.class_name == class_name)
 
-	def bulk_update_status(self, db: Session, admission_ids: list[int], status_value: str) -> int:
-		if not admission_ids:
-			raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No admission IDs provided")
+        if from_date:
+            filters.append(func.date(Admission.created_at) >= from_date)
 
-		try:
-			target_status = AdmissionStatus(status_value)
-		except ValueError as exc:
-			raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid admission status") from exc
+        if to_date:
+            filters.append(func.date(Admission.created_at) <= to_date)
 
-		admissions = (
-			db.execute(select(Admission).where(Admission.id.in_(admission_ids))).scalars().all()
-		)
-		if not admissions:
-			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No matching admissions found")
+        if filters:
+            query = query.where(and_(*filters))
 
-		for item in admissions:
-			item.status = target_status
-			db.add(item)
+        total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
+        items = (
+            db.execute(query.order_by(Admission.created_at.desc()).offset((page - 1) * size).limit(size))
+            .scalars()
+            .all()
+        )
+        return {"items": items, "page": page, "size": size, "total": total}
 
-		db.commit()
-		return len(admissions)
+    def update(self, db: Session, item_id: int, payload: dict[str, Any]) -> Any:
+        admission = self.get(db, item_id)
 
-	def assign_reviewer(self, db: Session, admission_ids: list[int], reviewer_name: str) -> int:
-		if not admission_ids:
-			raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No admission IDs provided")
+        actor = str(payload.pop("decision_actor", "system"))
+        reason = str(payload.pop("decision_reason", ""))
 
-		reviewer = reviewer_name.strip()
-		if not reviewer:
-			raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reviewer name is required")
+        if "status" in payload:
+            try:
+                target_status = AdmissionStatus(str(payload["status"]))
+            except ValueError as exc:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid admission status") from exc
 
-		admissions = (
-			db.execute(select(Admission).where(Admission.id.in_(admission_ids))).scalars().all()
-		)
-		if not admissions:
-			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No matching admissions found")
+            self._enforce_transition(admission.status, target_status)
+            if target_status != admission.status:
+                if not reason.strip():
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="decision_reason is required when changing admission status",
+                    )
+                self._append_decision_log(
+                    admission,
+                    from_status=admission.status,
+                    to_status=target_status,
+                    actor=actor,
+                    reason=reason,
+                    source="update",
+                )
+                admission.status = target_status
 
-		for item in admissions:
-			item.reviewer_name = reviewer
-			db.add(item)
+        for key, value in payload.items():
+            if hasattr(admission, key):
+                setattr(admission, key, value)
 
-		db.commit()
-		return len(admissions)
+        db.add(admission)
+        db.commit()
+        db.refresh(admission)
+        return admission
 
-	def add_note(self, db: Session, item_id: int, note: str, author: str) -> list[dict[str, str]]:
-		admission = self.get(db, item_id)
-		note_value = note.strip()
-		author_value = author.strip() or "system"
-		if not note_value:
-			raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Note cannot be empty")
+    def transition_status(
+        self,
+        db: Session,
+        item_id: int,
+        target_status: str,
+        actor: str,
+        reason: str,
+    ) -> Admission:
+        admission = self.get(db, item_id)
+        try:
+            next_status = AdmissionStatus(target_status)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid admission status") from exc
 
-		try:
-			existing = json.loads(admission.notes_json or "[]")
-			if not isinstance(existing, list):
-				existing = []
-		except json.JSONDecodeError:
-			existing = []
+        self._enforce_transition(admission.status, next_status)
+        if next_status != admission.status:
+            if not reason.strip():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="reason is required when changing admission status",
+                )
+            self._append_decision_log(
+                admission,
+                from_status=admission.status,
+                to_status=next_status,
+                actor=actor,
+                reason=reason,
+                source="transition",
+            )
+            admission.status = next_status
+            db.add(admission)
+            db.commit()
+            db.refresh(admission)
 
-		existing.append({"author": author_value, "note": note_value, "timestamp": date.today().isoformat()})
-		admission.notes_json = json.dumps(existing)
-		db.add(admission)
-		db.commit()
-		db.refresh(admission)
-		return existing
+        return admission
 
-	def get_notes(self, db: Session, item_id: int) -> list[dict[str, str]]:
-		admission = self.get(db, item_id)
-		try:
-			notes = json.loads(admission.notes_json or "[]")
-			if isinstance(notes, list):
-				return notes
-			return []
-		except json.JSONDecodeError:
-			return []
+    def bulk_update_status(
+        self,
+        db: Session,
+        admission_ids: list[int],
+        status_value: str,
+        actor: str,
+        reason: str,
+    ) -> int:
+        if not admission_ids:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No admission IDs provided")
+
+        try:
+            target_status = AdmissionStatus(status_value)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid admission status") from exc
+
+        admissions = db.execute(select(Admission).where(Admission.id.in_(admission_ids))).scalars().all()
+        if not admissions:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No matching admissions found")
+
+        for item in admissions:
+            self._enforce_transition(item.status, target_status)
+
+        updated_count = 0
+        for item in admissions:
+            if item.status == target_status:
+                continue
+            if not reason.strip():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="reason is required when changing admission status",
+                )
+            self._append_decision_log(
+                item,
+                from_status=item.status,
+                to_status=target_status,
+                actor=actor,
+                reason=reason,
+                source="bulk-status",
+            )
+            item.status = target_status
+            db.add(item)
+            updated_count += 1
+
+        db.commit()
+        return updated_count
+
+    def assign_reviewer(self, db: Session, admission_ids: list[int], reviewer_name: str) -> int:
+        if not admission_ids:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No admission IDs provided")
+
+        reviewer = reviewer_name.strip()
+        if not reviewer:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reviewer name is required")
+
+        admissions = db.execute(select(Admission).where(Admission.id.in_(admission_ids))).scalars().all()
+        if not admissions:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No matching admissions found")
+
+        for item in admissions:
+            item.reviewer_name = reviewer
+            db.add(item)
+
+        db.commit()
+        return len(admissions)
+
+    def add_note(self, db: Session, item_id: int, note: str, author: str) -> list[dict[str, str]]:
+        admission = self.get(db, item_id)
+        note_value = note.strip()
+        author_value = author.strip() or "system"
+        if not note_value:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Note cannot be empty")
+
+        existing = self._parse_json_list(admission.notes_json)
+        existing.append(
+            {
+                "author": author_value,
+                "note": note_value,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        admission.notes_json = json.dumps(existing)
+        db.add(admission)
+        db.commit()
+        db.refresh(admission)
+        return existing
+
+    def get_notes(self, db: Session, item_id: int) -> list[dict[str, str]]:
+        admission = self.get(db, item_id)
+        return self._parse_json_list(admission.notes_json)
+
+    def get_decision_log(self, db: Session, item_id: int) -> list[dict[str, Any]]:
+        admission = self.get(db, item_id)
+        return self._parse_json_list(admission.decision_log_json)
 
 
 service = AdmissionsService(repository)

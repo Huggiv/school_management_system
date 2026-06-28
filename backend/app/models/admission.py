@@ -17,6 +17,7 @@ class Admission(TimestampMixin, Base):
     contact_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     reviewer_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
     notes_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    decision_log_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     status: Mapped[AdmissionStatus] = mapped_column(
         SqlEnum(
             AdmissionStatus,

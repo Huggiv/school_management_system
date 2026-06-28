@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { AdmissionNote } from "@/features/admissions/types";
+import type { AdmissionDecisionLogEntry, AdmissionNote } from "@/features/admissions/types";
 import { apiClient } from "@/lib/api/client";
 
 export function useAdmissionNotes(admissionId: number | null) {
@@ -27,6 +27,19 @@ export function useAddAdmissionNote(admissionId: number | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admission-notes", admissionId] });
       queryClient.invalidateQueries({ queryKey: ["admissions-management"] });
+    },
+  });
+}
+
+export function useAdmissionDecisionLog(admissionId: number | null) {
+  return useQuery({
+    queryKey: ["admission-decision-log", admissionId],
+    enabled: Boolean(admissionId),
+    queryFn: async () => {
+      const { data } = await apiClient.get<{ items: AdmissionDecisionLogEntry[] }>(
+        `/api/v1/admissions/${admissionId}/decision-log`,
+      );
+      return data.items;
     },
   });
 }

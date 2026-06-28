@@ -8,6 +8,7 @@ import { AdmissionsTable } from "@/features/admissions/components/AdmissionsTabl
 import { useAdmissionExport } from "@/features/admissions/hooks/useAdmissionExport";
 import {
   useAddAdmissionNote,
+  useAdmissionDecisionLog,
   useAdmissionNotes,
 } from "@/features/admissions/hooks/useAdmissionNotes";
 import { useAdmissionsManagement } from "@/features/admissions/hooks/useAdmissionsManagement";
@@ -23,6 +24,7 @@ export function ApplicationManagementPage() {
   const [toDate, setToDate] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkStatus, setBulkStatus] = useState<Exclude<AdmissionStatusOption, "all">>("pending");
+  const [decisionReason, setDecisionReason] = useState("");
   const [reviewerName, setReviewerName] = useState("");
   const [activeAdmission, setActiveAdmission] = useState<AdmissionRecord | null>(null);
   const [noteText, setNoteText] = useState("");
@@ -50,6 +52,7 @@ export function ApplicationManagementPage() {
   const bulkStatusMutation = useBulkUpdateAdmissionsStatus();
   const assignReviewerMutation = useAssignAdmissionReviewer();
   const { data: notes = [] } = useAdmissionNotes(activeAdmission?.id ?? null);
+  const { data: decisionLog = [] } = useAdmissionDecisionLog(activeAdmission?.id ?? null);
   const addNoteMutation = useAddAdmissionNote(activeAdmission?.id ?? null);
 
   const hasSelection = selectedIds.length > 0;
@@ -90,18 +93,32 @@ export function ApplicationManagementPage() {
       <div className="toolbar management-actions">
         <select value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value as Exclude<AdmissionStatusOption, "all">)}>
           <option value="pending">Set Pending</option>
+          <option value="under_review">Set Under Review</option>
+          <option value="waitlisted">Set Waitlisted</option>
           <option value="accepted">Set Accepted</option>
           <option value="rejected">Set Rejected</option>
         </select>
+        <input
+          type="text"
+          placeholder="Decision reason (required for audit)"
+          value={decisionReason}
+          onChange={(event) => setDecisionReason(event.target.value)}
+        />
         <button
           type="button"
-          disabled={!hasSelection || bulkStatusMutation.isPending}
+          disabled={!hasSelection || !decisionReason.trim() || bulkStatusMutation.isPending}
           onClick={() => {
             bulkStatusMutation.mutate(
-              { ids: selectedIds, status: bulkStatus },
+              {
+                ids: selectedIds,
+                status: bulkStatus,
+                actor: "admin",
+                reason: decisionReason.trim(),
+              },
               {
                 onSuccess: () => {
                   setSelectedIds([]);
+                  setDecisionReason("");
                 },
               },
             );
@@ -183,6 +200,23 @@ export function ApplicationManagementPage() {
               Close
             </button>
           </div>
+
+          <h3>Decision Audit Log</h3>
+          {decisionLog.length === 0 ? <p>No decision transitions recorded yet.</p> : null}
+          {decisionLog.map((entry, index) => (
+            <article key={`${entry.timestamp}-${index}`} className="note-item">
+              <strong>
+                {entry.from_status}
+                {" -> "}
+                {entry.to_status}
+              </strong>
+              <p>
+                Actor: {entry.actor} | Source: {entry.source}
+              </p>
+              <p>{entry.reason || "No reason provided"}</p>
+              <small>{entry.timestamp}</small>
+            </article>
+          ))}
         </section>
       )}
     </section>

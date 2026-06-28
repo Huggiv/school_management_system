@@ -6,6 +6,8 @@ import { apiClient } from "@/lib/api/client";
 interface BulkStatusPayload {
   ids: number[];
   status: Exclude<AdmissionStatusOption, "all">;
+  actor: string;
+  reason: string;
 }
 
 export function useBulkUpdateAdmissionsStatus() {

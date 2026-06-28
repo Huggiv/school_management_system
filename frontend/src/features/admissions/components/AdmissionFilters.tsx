@@ -63,6 +63,8 @@ export function AdmissionFilters({
       >
         <option value="all">All Status</option>
         <option value="pending">Pending</option>
+        <option value="under_review">Under Review</option>
+        <option value="waitlisted">Waitlisted</option>
         <option value="accepted">Accepted</option>
         <option value="rejected">Rejected</option>
       </select>

@@ -12,5 +12,7 @@ class UserRole(StrEnum):
 
 class AdmissionStatus(StrEnum):
     PENDING = "pending"
+    UNDER_REVIEW = "under_review"
+    WAITLISTED = "waitlisted"
     ACCEPTED = "accepted"
     REJECTED = "rejected"

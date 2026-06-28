@@ -7,6 +7,7 @@ export interface AdmissionRecord {
   contact_number?: string | null;
   reviewer_name?: string | null;
   notes_json?: string;
+  decision_log_json?: string;
   created_at?: string;
   status: string;
 }
@@ -15,6 +16,15 @@ export interface AdmissionNote {
   author: string;
   note: string;
   timestamp: string;
+}
+
+export interface AdmissionDecisionLogEntry {
+  timestamp: string;
+  actor: string;
+  reason: string;
+  source: string;
+  from_status: string;
+  to_status: string;
 }
 
 export interface AdmissionFormValues {
@@ -31,7 +41,14 @@ export interface AdmissionFormValues {
   document?: FileList;
 }
 
-export const ADMISSION_STATUS_OPTIONS = ["all", "pending", "accepted", "rejected"] as const;
+export const ADMISSION_STATUS_OPTIONS = [
+  "all",
+  "pending",
+  "under_review",
+  "waitlisted",
+  "accepted",
+  "rejected",
+] as const;
 
 export type AdmissionStatusOption = (typeof ADMISSION_STATUS_OPTIONS)[number];
 
