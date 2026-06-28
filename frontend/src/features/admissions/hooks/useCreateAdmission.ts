@@ -32,6 +32,9 @@ export function useCreateAdmission() {
         class_name: payload.grade_applying_for,
         email: payload.email,
         contact_number: normalizeContactNumber(payload.contact_number),
+        fee_total: payload.fee_total,
+        fee_paid: payload.fee_paid,
+        fee_pending: payload.fee_pending,
         status: "pending",
         notes_json: JSON.stringify([
           {

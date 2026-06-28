@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text
+from sqlalchemy import Float, String, Text
 from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -15,6 +15,9 @@ class Admission(TimestampMixin, Base):
     class_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     contact_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    fee_total: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    fee_paid: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    fee_pending: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     reviewer_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
     notes_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     decision_log_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")

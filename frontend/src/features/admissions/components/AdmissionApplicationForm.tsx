@@ -3,7 +3,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCreateAdmission } from "@/features/admissions/hooks/useCreateAdmission";
-import { admissionSchema, type AdmissionFormSchemaValues } from "@/features/admissions/validation/admissionSchema";
+import {
+  admissionSchema,
+  type AdmissionFormSchemaInput,
+  type AdmissionFormSchemaValues,
+} from "@/features/admissions/validation/admissionSchema";
 import { mapApiError } from "@/lib/api/client";
 
 function formatPhoneInput(value: string): string {
@@ -23,7 +27,7 @@ export function AdmissionApplicationForm() {
     reset,
     setValue,
     formState: { errors, isSubmitted },
-  } = useForm<AdmissionFormSchemaValues>({
+  } = useForm<AdmissionFormSchemaInput, unknown, AdmissionFormSchemaValues>({
     resolver: zodResolver(admissionSchema),
     defaultValues: {
       student_name: "",
@@ -36,6 +40,9 @@ export function AdmissionApplicationForm() {
       grade_applying_for: "",
       contact_number: "",
       email: "",
+      fee_total: 0,
+      fee_paid: 0,
+      fee_pending: 0,
     },
   });
 
@@ -235,6 +242,63 @@ export function AdmissionApplicationForm() {
         {errors.email && (
           <small id="email_error" className="field-error">
             {errors.email.message}
+          </small>
+        )}
+      </label>
+
+      <label className="field-wrap" htmlFor="fee_total">
+        <span>Total Fee</span>
+        <input
+          id="fee_total"
+          type="number"
+          min="0"
+          step="0.01"
+          aria-invalid={Boolean(errors.fee_total)}
+          aria-describedby={errors.fee_total ? "fee_total_error" : undefined}
+          {...register("fee_total")}
+          placeholder="0.00"
+        />
+        {errors.fee_total && (
+          <small id="fee_total_error" className="field-error">
+            {errors.fee_total.message}
+          </small>
+        )}
+      </label>
+
+      <label className="field-wrap" htmlFor="fee_paid">
+        <span>Paid Fee</span>
+        <input
+          id="fee_paid"
+          type="number"
+          min="0"
+          step="0.01"
+          aria-invalid={Boolean(errors.fee_paid)}
+          aria-describedby={errors.fee_paid ? "fee_paid_error" : undefined}
+          {...register("fee_paid")}
+          placeholder="0.00"
+        />
+        {errors.fee_paid && (
+          <small id="fee_paid_error" className="field-error">
+            {errors.fee_paid.message}
+          </small>
+        )}
+      </label>
+
+      <label className="field-wrap" htmlFor="fee_pending">
+        <span>Pending Fee</span>
+        <input
+          id="fee_pending"
+          type="number"
+          min="0"
+          step="0.01"
+          aria-invalid={Boolean(errors.fee_pending)}
+          aria-describedby={errors.fee_pending ? "fee_pending_error" : undefined}
+          {...register("fee_pending")}
+          placeholder="0.00"
+        />
+        {errors.fee_pending && (
+          <small id="fee_pending_error" className="field-error">
+            {errors.fee_pending.message}
           </small>
         )}
       </label>

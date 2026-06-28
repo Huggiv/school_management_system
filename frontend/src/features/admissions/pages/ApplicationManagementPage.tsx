@@ -28,6 +28,13 @@ export function ApplicationManagementPage() {
   const [bulkFeedback, setBulkFeedback] = useState<string | null>(null);
   const [activeAdmission, setActiveAdmission] = useState<AdmissionRecord | null>(null);
   const [noteText, setNoteText] = useState("");
+  const [editAdmission, setEditAdmission] = useState<AdmissionRecord | null>(null);
+  const [editStudentName, setEditStudentName] = useState("");
+  const [editClassName, setEditClassName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editContact, setEditContact] = useState("");
+  const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null);
+  const [editingNoteText, setEditingNoteText] = useState("");
 
   const managementFilters = useMemo(() => ({ search: "", status: "all" as const, className: "", fromDate: "", toDate: "" }), []);
 
@@ -75,6 +82,16 @@ export function ApplicationManagementPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admissions-management"] });
       queryClient.invalidateQueries({ queryKey: ["admissions"] });
+    },
+  });
+
+  const updateNoteMutation = useMutation({
+    mutationFn: async ({ itemId, notesJson }: { itemId: number; notesJson: string }) => {
+      await apiClient.put(`/api/v1/admissions/${itemId}`, { notes_json: notesJson });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admission-notes", activeAdmission?.id] });
+      queryClient.invalidateQueries({ queryKey: ["admissions-management"] });
     },
   });
 
@@ -176,32 +193,11 @@ export function ApplicationManagementPage() {
               setNoteText("");
             }}
             onUpdateRow={(item) => {
-              const nextStudent = window.prompt("Student name", item.student_name);
-              if (nextStudent === null) {
-                return;
-              }
-              const nextClassName = window.prompt("Class / Grade", item.class_name ?? "");
-              if (nextClassName === null) {
-                return;
-              }
-
-              updateAdmissionMutation.mutate(
-                {
-                  itemId: item.id,
-                  payload: {
-                    student_name: nextStudent.trim(),
-                    class_name: nextClassName.trim() || null,
-                  },
-                },
-                {
-                  onSuccess: () => {
-                    setBulkFeedback(`Updated application ${item.application_number}.`);
-                  },
-                  onError: (error) => {
-                    setBulkFeedback(`Update failed. ${mapApiError(error).message}`);
-                  },
-                },
-              );
+              setEditAdmission(item);
+              setEditStudentName(item.student_name);
+              setEditClassName(item.class_name ?? "");
+              setEditEmail(item.email ?? "");
+              setEditContact(item.contact_number ?? "");
             }}
             onDeleteRow={(item) => {
               const confirmed = window.confirm(`Delete admission ${item.application_number}? This cannot be undone.`);
@@ -250,6 +246,17 @@ export function ApplicationManagementPage() {
               <strong>{note.author}</strong>
               <p>{note.note}</p>
               <small>{note.timestamp}</small>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingNoteIndex(index);
+                    setEditingNoteText(note.note);
+                  }}
+                >
+                  Edit Note
+                </button>
+              </div>
             </article>
           ))}
           <div className="toolbar">
@@ -298,6 +305,114 @@ export function ApplicationManagementPage() {
           ))}
         </section>
       )}
+
+      {editAdmission ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit admission record">
+          <section className="panel modal-panel">
+            <h2>Edit Application: {editAdmission.application_number}</h2>
+            <div className="form-grid">
+              <label className="field-wrap" htmlFor="edit_student_name">
+                <span>Student Name</span>
+                <input id="edit_student_name" value={editStudentName} onChange={(event) => setEditStudentName(event.target.value)} />
+              </label>
+              <label className="field-wrap" htmlFor="edit_class_name">
+                <span>Class / Grade</span>
+                <input id="edit_class_name" value={editClassName} onChange={(event) => setEditClassName(event.target.value)} />
+              </label>
+              <label className="field-wrap" htmlFor="edit_email">
+                <span>Email</span>
+                <input id="edit_email" type="email" value={editEmail} onChange={(event) => setEditEmail(event.target.value)} />
+              </label>
+              <label className="field-wrap" htmlFor="edit_contact">
+                <span>Contact Number</span>
+                <input id="edit_contact" value={editContact} onChange={(event) => setEditContact(event.target.value)} />
+              </label>
+            </div>
+            <div className="toolbar">
+              <button
+                type="button"
+                onClick={() => {
+                  updateAdmissionMutation.mutate(
+                    {
+                      itemId: editAdmission.id,
+                      payload: {
+                        student_name: editStudentName.trim(),
+                        class_name: editClassName.trim() || null,
+                        email: editEmail.trim() || null,
+                        contact_number: editContact.trim() || null,
+                      },
+                    },
+                    {
+                      onSuccess: () => {
+                        setBulkFeedback(`Updated application ${editAdmission.application_number}.`);
+                        setEditAdmission(null);
+                      },
+                      onError: (error) => {
+                        setBulkFeedback(`Update failed. ${mapApiError(error).message}`);
+                      },
+                    },
+                  );
+                }}
+              >
+                Save Changes
+              </button>
+              <button type="button" onClick={() => setEditAdmission(null)}>
+                Cancel
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {activeAdmission && editingNoteIndex !== null ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit admission note">
+          <section className="panel modal-panel small">
+            <h2>Edit Note</h2>
+            <textarea
+              rows={4}
+              value={editingNoteText}
+              onChange={(event) => setEditingNoteText(event.target.value)}
+            />
+            <div className="toolbar">
+              <button
+                type="button"
+                disabled={!editingNoteText.trim() || updateNoteMutation.isPending}
+                onClick={() => {
+                  const updatedNotes = notes.map((note, index) =>
+                    index === editingNoteIndex ? { ...note, note: editingNoteText.trim() } : note,
+                  );
+                  updateNoteMutation.mutate(
+                    {
+                      itemId: activeAdmission.id,
+                      notesJson: JSON.stringify(updatedNotes),
+                    },
+                    {
+                      onSuccess: () => {
+                        setEditingNoteIndex(null);
+                        setEditingNoteText("");
+                      },
+                      onError: (error) => {
+                        setBulkFeedback(`Note update failed. ${mapApiError(error).message}`);
+                      },
+                    },
+                  );
+                }}
+              >
+                Save Note
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingNoteIndex(null);
+                  setEditingNoteText("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }

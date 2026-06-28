@@ -5,6 +5,9 @@ export interface AdmissionRecord {
   class_name?: string | null;
   email?: string | null;
   contact_number?: string | null;
+  fee_total?: number;
+  fee_paid?: number;
+  fee_pending?: number;
   reviewer_name?: string | null;
   notes_json?: string;
   decision_log_json?: string;
@@ -17,6 +20,7 @@ export interface AdmissionNote {
   author: string;
   note: string;
   timestamp: string;
+  document_path?: string;
 }
 
 export interface AdmissionDecisionLogEntry {
@@ -39,6 +43,9 @@ export interface AdmissionFormValues {
   grade_applying_for: string;
   contact_number: string;
   email: string;
+  fee_total: number;
+  fee_paid: number;
+  fee_pending: number;
   document?: FileList;
 }
 

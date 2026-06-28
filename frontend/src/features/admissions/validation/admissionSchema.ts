@@ -50,6 +50,9 @@ export const admissionSchema = z
       .max(20, "Contact number is too long")
       .regex(/^[+0-9()\-\s]+$/, "Contact number format is invalid"),
     email: z.string().trim().email("Email format is invalid"),
+    fee_total: z.coerce.number().min(0, "Total fee must be zero or more"),
+    fee_paid: z.coerce.number().min(0, "Paid fee must be zero or more"),
+    fee_pending: z.coerce.number().min(0, "Pending fee must be zero or more"),
     document: z
       .custom<FileList | undefined>((value) => value === undefined || value instanceof FileList)
       .optional()
@@ -81,6 +84,24 @@ export const admissionSchema = z
         path: ["document"],
       });
     }
+
+    if (values.fee_paid > values.fee_total) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Paid fee cannot exceed total fee",
+        path: ["fee_paid"],
+      });
+    }
+
+    const expectedPending = Number((values.fee_total - values.fee_paid).toFixed(2));
+    if (Math.abs(values.fee_pending - expectedPending) > 0.01) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Pending fee must equal Total fee minus Paid fee",
+        path: ["fee_pending"],
+      });
+    }
   });
 
-export type AdmissionFormSchemaValues = z.infer<typeof admissionSchema>;
+export type AdmissionFormSchemaInput = z.input<typeof admissionSchema>;
+export type AdmissionFormSchemaValues = z.output<typeof admissionSchema>;
