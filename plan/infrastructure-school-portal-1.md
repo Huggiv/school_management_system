@@ -122,13 +122,13 @@ This plan defines deterministic implementation tasks to build the School Managem
 - **GOAL-007**: Implement frontend feature pages and shared UI components required by requirements.
 - **Completion Criteria**: All required pages are functional, responsive, accessible, and connected to backend APIs.
 
-| Task     | Description                                                                                                                                                                                     | Completed | Date |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-031 | Build home page components in `frontend/src/features/home/` including hero carousel, principal message, quick stats, latest announcements, events preview, gallery preview, and footer socials. |           |      |
-| TASK-032 | Build responsive navigation in `frontend/src/components/navigation/` with sticky desktop menu, dropdown items, and mobile hamburger slide panel.                                                |           |      |
-| TASK-033 | Build role dashboards in `frontend/src/features/dashboard/` (`AdminDashboard.tsx`, `TeacherDashboard.tsx`, `StudentDashboard.tsx`, `ParentDashboard.tsx`).                                      |           |      |
-| TASK-034 | Build admission workflow in `frontend/src/features/admissions/` with React Hook Form, document uploads, and admin table with filter/search/export controls.                                     |           |      |
-| TASK-035 | Build grade and assignment workflows in `frontend/src/features/grades/` and `frontend/src/features/assignments/` including create/edit/publish and submission tracking UX.                      |           |      |
+| Task     | Description                                                                                                                                                                                     | Completed | Date       |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
+| TASK-031 | Build home page components in `frontend/src/features/home/` including hero carousel, principal message, quick stats, latest announcements, events preview, gallery preview, and footer socials. | ✅        | 2026-06-28 |
+| TASK-032 | Build responsive navigation in `frontend/src/components/navigation/` with sticky desktop menu, dropdown items, and mobile hamburger slide panel.                                                | ✅        | 2026-06-28 |
+| TASK-033 | Build role dashboards in `frontend/src/features/dashboard/` (`AdminDashboard.tsx`, `TeacherDashboard.tsx`, `StudentDashboard.tsx`, `ParentDashboard.tsx`).                                      | ✅        | 2026-06-28 |
+| TASK-034 | Build admission workflow in `frontend/src/features/admissions/` with React Hook Form, document uploads, and admin table with filter/search/export controls.                                     | ✅        | 2026-06-28 |
+| TASK-035 | Build grade and assignment workflows in `frontend/src/features/grades/` and `frontend/src/features/assignments/` including create/edit/publish and submission tracking UX.                      | ✅        | 2026-06-28 |
 
 ### Implementation Phase 8
 
