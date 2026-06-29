@@ -115,3 +115,105 @@ Standard list response shape:
 
 - OpenAPI UI: `/docs`
 - ReDoc: `/redoc`
+
+## Backend Entity Relationship Diagram
+
+```mermaid
+erDiagram
+  USERS {
+    int id PK
+    string first_name
+    string last_name
+    string email
+    string role
+    string phone
+  }
+
+  STUDENTS {
+    int id PK
+    int user_id FK
+    string admission_number
+    string class_name
+    string section
+    string guardian
+  }
+
+  TEACHERS {
+    int id PK
+    int user_id FK
+    string employee_id
+    string department
+  }
+
+  PARENTS {
+    int id PK
+    int user_id FK
+    string relation
+    string phone
+  }
+
+  ADMISSIONS {
+    int id PK
+    string application_number
+    string student_name
+    string gender
+    string class_name
+    string email
+    string contact_number
+    float fee_total
+    float fee_paid
+    float fee_pending
+    string status
+  }
+
+  ASSIGNMENTS {
+    int id PK
+    int teacher_id FK
+    string title
+    datetime due_date
+  }
+
+  SUBMISSIONS {
+    int id PK
+    int assignment_id FK
+    int student_id FK
+    datetime submitted_at
+    float marks
+  }
+
+  GRADES {
+    int id PK
+    int student_id FK
+    string subject
+    float marks
+    string grade
+  }
+
+  ANNOUNCEMENTS {
+    int id PK
+    string title
+    datetime published_at
+  }
+
+  EVENTS {
+    int id PK
+    string title
+    date event_date
+  }
+
+  GALLERY {
+    int id PK
+    string image
+    string title
+    string category
+  }
+
+  USERS ||--o| STUDENTS : has_profile
+  USERS ||--o| TEACHERS : has_profile
+  USERS ||--o| PARENTS : has_profile
+
+  TEACHERS ||--o{ ASSIGNMENTS : creates
+  ASSIGNMENTS ||--o{ SUBMISSIONS : receives
+  STUDENTS ||--o{ SUBMISSIONS : submits
+  STUDENTS ||--o{ GRADES : receives
+```

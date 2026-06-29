@@ -53,3 +53,8 @@ The platform is a modular monolith split across frontend and backend services.
 - `db` service initializes extensions and metadata scripts.
 - `backend` applies migrations and serves API on port `8000`.
 - `frontend` serves static bundle via Nginx on port `5173`.
+
+## Target Architecture Extensions
+
+- Management, Fees, Academics, Exams blueprint:
+	- `docs/architecture/management-academics-exams-architecture.md`
