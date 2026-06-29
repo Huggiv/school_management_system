@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -15,10 +15,33 @@ function formatPhoneInput(value: string): string {
   return raw;
 }
 
+function formatIndianCurrencyInput(value: string): string {
+  const cleaned = value.replace(/[^\d.]/g, "");
+  if (!cleaned) {
+    return "";
+  }
+
+  const [integerPartRaw, decimalPartRaw = ""] = cleaned.split(".");
+  const integerPart = integerPartRaw.replace(/^0+(?=\d)/, "") || "0";
+  const lastThree = integerPart.slice(-3);
+  const otherNumbers = integerPart.slice(0, -3);
+  const formattedInt = otherNumbers ? `${otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",")},${lastThree}` : lastThree;
+  const formattedDecimal = decimalPartRaw ? `.${decimalPartRaw.slice(0, 2)}` : "";
+  return `${formattedInt}${formattedDecimal}`;
+}
+
+function formatCurrencyForReview(value: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 export function AdmissionApplicationForm() {
   const summaryId = useId();
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const createAdmission = useCreateAdmission();
+  const [reviewValues, setReviewValues] = useState<AdmissionFormSchemaValues | null>(null);
 
   const {
     register,
@@ -40,13 +63,56 @@ export function AdmissionApplicationForm() {
       grade_applying_for: "",
       contact_number: "",
       email: "",
-      fee_total: 0,
-      fee_paid: 0,
-      fee_pending: 0,
+      fee_total: "0",
+      fee_paid: "0",
+      fee_pending: "0",
     },
   });
 
   const transferStudent = watch("transfer_student");
+
+  function printReview(values: AdmissionFormSchemaValues): void {
+    const popup = window.open("", "_blank", "width=900,height=700");
+    if (!popup) {
+      return;
+    }
+    popup.document.write(`
+      <html>
+        <head>
+          <title>Admission Application Review</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 24px; }
+            h1 { margin-bottom: 4px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { border: 1px solid #d0d0d0; padding: 8px; text-align: left; }
+            th { width: 35%; background: #f3f7ff; }
+          </style>
+        </head>
+        <body>
+          <h1>Admission Application Review</h1>
+          <table>
+            <tr><th>Student Name</th><td>${values.student_name}</td></tr>
+            <tr><th>Date of Birth</th><td>${values.dob}</td></tr>
+            <tr><th>Gender</th><td>${values.gender}</td></tr>
+            <tr><th>Parent/Guardian</th><td>${values.parent_name}</td></tr>
+            <tr><th>Address</th><td>${values.address}</td></tr>
+            <tr><th>Grade</th><td>${values.grade_applying_for}</td></tr>
+            <tr><th>Contact</th><td>${values.contact_number}</td></tr>
+            <tr><th>Email</th><td>${values.email}</td></tr>
+            <tr><th>Total Fee</th><td>Rs. ${formatCurrencyForReview(values.fee_total)}</td></tr>
+            <tr><th>Paid Fee</th><td>Rs. ${formatCurrencyForReview(values.fee_paid)}</td></tr>
+            <tr><th>Pending Fee</th><td>Rs. ${formatCurrencyForReview(values.fee_pending)}</td></tr>
+            <tr><th>Transfer Student</th><td>${values.transfer_student ? "Yes" : "No"}</td></tr>
+            <tr><th>Previous School</th><td>${values.previous_school || "-"}</td></tr>
+            <tr><th>Supporting Documents</th><td>${values.document?.length ?? 0} file(s)</td></tr>
+          </table>
+        </body>
+      </html>
+    `);
+    popup.document.close();
+    popup.focus();
+    popup.print();
+  }
 
   useEffect(() => {
     if (Object.keys(errors).length > 0 && isSubmitted) {
@@ -59,11 +125,7 @@ export function AdmissionApplicationForm() {
       aria-describedby={Object.keys(errors).length ? summaryId : undefined}
       className="form-grid"
       onSubmit={handleSubmit((values) => {
-        createAdmission.mutate(values, {
-          onSuccess: () => {
-            reset();
-          },
-        });
+        setReviewValues(values);
       })}
     >
       {createAdmission.isSuccess ? (
@@ -220,7 +282,7 @@ export function AdmissionApplicationForm() {
               });
             },
           })}
-          placeholder="+123456789"
+          placeholder="+9111234567890"
         />
         {errors.contact_number && (
           <small id="contact_number_error" className="field-error">
@@ -250,13 +312,16 @@ export function AdmissionApplicationForm() {
         <span>Total Fee</span>
         <input
           id="fee_total"
-          type="number"
-          min="0"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
           aria-invalid={Boolean(errors.fee_total)}
           aria-describedby={errors.fee_total ? "fee_total_error" : undefined}
-          {...register("fee_total")}
-          placeholder="0.00"
+          {...register("fee_total", {
+            onBlur: (event) => {
+              setValue("fee_total", formatIndianCurrencyInput(event.target.value), { shouldValidate: true });
+            },
+          })}
+          placeholder="1,00,00,000.00"
         />
         {errors.fee_total && (
           <small id="fee_total_error" className="field-error">
@@ -269,13 +334,16 @@ export function AdmissionApplicationForm() {
         <span>Paid Fee</span>
         <input
           id="fee_paid"
-          type="number"
-          min="0"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
           aria-invalid={Boolean(errors.fee_paid)}
           aria-describedby={errors.fee_paid ? "fee_paid_error" : undefined}
-          {...register("fee_paid")}
-          placeholder="0.00"
+          {...register("fee_paid", {
+            onBlur: (event) => {
+              setValue("fee_paid", formatIndianCurrencyInput(event.target.value), { shouldValidate: true });
+            },
+          })}
+          placeholder="1,00,00,000.00"
         />
         {errors.fee_paid && (
           <small id="fee_paid_error" className="field-error">
@@ -288,13 +356,16 @@ export function AdmissionApplicationForm() {
         <span>Pending Fee</span>
         <input
           id="fee_pending"
-          type="number"
-          min="0"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
           aria-invalid={Boolean(errors.fee_pending)}
           aria-describedby={errors.fee_pending ? "fee_pending_error" : undefined}
-          {...register("fee_pending")}
-          placeholder="0.00"
+          {...register("fee_pending", {
+            onBlur: (event) => {
+              setValue("fee_pending", formatIndianCurrencyInput(event.target.value), { shouldValidate: true });
+            },
+          })}
+          placeholder="1,00,00,000.00"
         />
         {errors.fee_pending && (
           <small id="fee_pending_error" className="field-error">
@@ -331,6 +402,7 @@ export function AdmissionApplicationForm() {
         <input
           id="document"
           type="file"
+          multiple
           accept=".pdf,.png,.jpg,.jpeg"
           aria-invalid={Boolean(errors.document)}
           aria-describedby={errors.document ? "document_error" : undefined}
@@ -348,6 +420,55 @@ export function AdmissionApplicationForm() {
           {createAdmission.isPending ? "Submitting..." : "Submit Application"}
         </button>
       </div>
+
+      {reviewValues ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Review application before submit">
+          <section className="panel modal-panel">
+            <div className="modal-header-row">
+              <h2>Review Application</h2>
+              <button type="button" onClick={() => printReview(reviewValues)}>
+                Print
+              </button>
+            </div>
+            <table className="table">
+              <tbody>
+                <tr><th>Student Name</th><td>{reviewValues.student_name}</td></tr>
+                <tr><th>Date of Birth</th><td>{reviewValues.dob}</td></tr>
+                <tr><th>Gender</th><td>{reviewValues.gender}</td></tr>
+                <tr><th>Parent/Guardian</th><td>{reviewValues.parent_name}</td></tr>
+                <tr><th>Address</th><td>{reviewValues.address}</td></tr>
+                <tr><th>Grade</th><td>{reviewValues.grade_applying_for}</td></tr>
+                <tr><th>Contact</th><td>{reviewValues.contact_number}</td></tr>
+                <tr><th>Email</th><td>{reviewValues.email}</td></tr>
+                <tr><th>Total Fee</th><td>Rs. {formatCurrencyForReview(reviewValues.fee_total)}</td></tr>
+                <tr><th>Paid Fee</th><td>Rs. {formatCurrencyForReview(reviewValues.fee_paid)}</td></tr>
+                <tr><th>Pending Fee</th><td>Rs. {formatCurrencyForReview(reviewValues.fee_pending)}</td></tr>
+                <tr><th>Transfer Student</th><td>{reviewValues.transfer_student ? "Yes" : "No"}</td></tr>
+                <tr><th>Previous School</th><td>{reviewValues.previous_school || "-"}</td></tr>
+                <tr><th>Files Selected</th><td>{reviewValues.document?.length ?? 0}</td></tr>
+              </tbody>
+            </table>
+            <div className="toolbar">
+              <button
+                type="button"
+                onClick={() => {
+                  createAdmission.mutate(reviewValues, {
+                    onSuccess: () => {
+                      reset();
+                      setReviewValues(null);
+                    },
+                  });
+                }}
+              >
+                Confirm & Submit
+              </button>
+              <button type="button" onClick={() => setReviewValues(null)}>
+                Back to Edit
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </form>
   );
 }

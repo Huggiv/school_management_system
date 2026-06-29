@@ -13,12 +13,15 @@ export function useCreateAdmission() {
   return useMutation({
     mutationFn: async (payload: AdmissionFormValues) => {
       let uploadedPath = "";
-      const documentFile = payload.document?.[0];
-      if (documentFile) {
+      const documents = payload.document ? Array.from(payload.document) : [];
+      if (documents.length > 0) {
         const formData = new FormData();
-        formData.append("file", documentFile);
+        for (const file of documents) {
+          formData.append("files", file);
+        }
+
         const upload = await apiClient.post<{ path: string }>(
-          "/api/v1/files/upload?category=admissions",
+          `/api/v1/files/upload-bundle?category=admissions&student_key=${encodeURIComponent(payload.student_name)}`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } },
         );
@@ -29,6 +32,7 @@ export function useCreateAdmission() {
       return apiClient.post("/api/v1/admissions", {
         application_number: appNumber,
         student_name: payload.student_name,
+        gender: payload.gender,
         class_name: payload.grade_applying_for,
         email: payload.email,
         contact_number: normalizeContactNumber(payload.contact_number),

@@ -14,10 +14,10 @@ interface AdmissionsTableProps {
   items: AdmissionRecord[];
   selectedIds: number[];
   onSelectionChange: (ids: number[]) => void;
-  onOpenNotes: (item: AdmissionRecord) => void;
   onUpdateRow: (item: AdmissionRecord) => void;
   onDeleteRow: (item: AdmissionRecord) => void;
   onDownloadDoc: (item: AdmissionRecord) => void;
+  onPrintApplication: (item: AdmissionRecord) => void;
 }
 
 function DownloadIcon() {
@@ -45,22 +45,26 @@ function DeleteIcon() {
   );
 }
 
-function NotesIcon() {
+function PrintIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M6 4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h7.59L18 21.41A1 1 0 0 0 19.7 20.7V17H20a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6Zm1 4a1 1 0 1 1 0-2h10a1 1 0 1 1 0 2H7Zm0 4a1 1 0 1 1 0-2h10a1 1 0 1 1 0 2H7Zm0 4a1 1 0 1 1 0-2h6a1 1 0 1 1 0 2H7Z" />
+      <path d="M7 3a1 1 0 0 0-1 1v3h12V4a1 1 0 0 0-1-1H7Zm11 6H6a3 3 0 0 0-3 3v4h3v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-4h3v-4a3 3 0 0 0-3-3Zm-2 10H8v-5h8v5Zm2-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
     </svg>
   );
+}
+
+function formatMoney(value: number | null | undefined): string {
+  return new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value ?? 0);
 }
 
 export function AdmissionsTable({
   items,
   selectedIds,
   onSelectionChange,
-  onOpenNotes,
   onUpdateRow,
   onDeleteRow,
   onDownloadDoc,
+  onPrintApplication,
 }: AdmissionsTableProps) {
   const gridRef = useRef<AgGridReact<AdmissionRecord>>(null);
 
@@ -126,6 +130,28 @@ export function AdmissionsTable({
         minWidth: 150,
       },
       {
+        field: "fee_total",
+        headerName: "Total",
+        filter: "agNumberColumnFilter",
+        valueFormatter: ({ value }) => `Rs. ${formatMoney(value as number | undefined)}`,
+        minWidth: 150,
+      },
+      {
+        field: "fee_paid",
+        headerName: "Paid",
+        filter: "agNumberColumnFilter",
+        valueFormatter: ({ value }) => `Rs. ${formatMoney(value as number | undefined)}`,
+        minWidth: 150,
+      },
+      {
+        field: "fee_pending",
+        headerName: "Pending",
+        filter: "agNumberColumnFilter",
+        valueFormatter: ({ value }) => `Rs. ${formatMoney(value as number | undefined)}`,
+        cellClass: (params) => ((Number(params.value ?? 0) > 0 ? "fee-pending-highlight" : "")),
+        minWidth: 170,
+      },
+      {
         headerName: "Actions",
         filter: false,
         floatingFilter: false,
@@ -139,11 +165,11 @@ export function AdmissionsTable({
               <button
                 type="button"
                 className="icon-action-button"
-                title="Notes"
-                aria-label="Open notes"
-                onClick={() => row && onOpenNotes(row)}
+                title="Print application"
+                aria-label="Print application"
+                onClick={() => row && onPrintApplication(row)}
               >
-                <NotesIcon />
+                <PrintIcon />
               </button>
               <button
                 type="button"
@@ -178,7 +204,7 @@ export function AdmissionsTable({
         },
       },
     ],
-    [onDeleteRow, onDownloadDoc, onOpenNotes, onUpdateRow, statusOptions],
+    [onDeleteRow, onDownloadDoc, onPrintApplication, onUpdateRow, statusOptions],
   );
 
   useEffect(() => {

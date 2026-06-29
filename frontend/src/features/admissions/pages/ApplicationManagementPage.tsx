@@ -2,11 +2,6 @@ import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { AdmissionsTable } from "@/features/admissions/components/AdmissionsTable";
-import {
-  useAddAdmissionNote,
-  useAdmissionDecisionLog,
-  useAdmissionNotes,
-} from "@/features/admissions/hooks/useAdmissionNotes";
 import { useAdmissionsManagement } from "@/features/admissions/hooks/useAdmissionsManagement";
 import { useBulkUpdateAdmissionsStatus } from "@/features/admissions/hooks/useBulkUpdateAdmissionsStatus";
 import type { AdmissionRecord, AdmissionStatusOption } from "@/features/admissions/types";
@@ -26,15 +21,11 @@ export function ApplicationManagementPage() {
   const [bulkStatus, setBulkStatus] = useState<Exclude<AdmissionStatusOption, "all">>("pending");
   const [decisionReason, setDecisionReason] = useState("");
   const [bulkFeedback, setBulkFeedback] = useState<string | null>(null);
-  const [activeAdmission, setActiveAdmission] = useState<AdmissionRecord | null>(null);
-  const [noteText, setNoteText] = useState("");
   const [editAdmission, setEditAdmission] = useState<AdmissionRecord | null>(null);
   const [editStudentName, setEditStudentName] = useState("");
   const [editClassName, setEditClassName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editContact, setEditContact] = useState("");
-  const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null);
-  const [editingNoteText, setEditingNoteText] = useState("");
 
   const managementFilters = useMemo(() => ({ search: "", status: "all" as const, className: "", fromDate: "", toDate: "" }), []);
 
@@ -85,20 +76,7 @@ export function ApplicationManagementPage() {
     },
   });
 
-  const updateNoteMutation = useMutation({
-    mutationFn: async ({ itemId, notesJson }: { itemId: number; notesJson: string }) => {
-      await apiClient.put(`/api/v1/admissions/${itemId}`, { notes_json: notesJson });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admission-notes", activeAdmission?.id] });
-      queryClient.invalidateQueries({ queryKey: ["admissions-management"] });
-    },
-  });
-
   const bulkStatusMutation = useBulkUpdateAdmissionsStatus();
-  const { data: notes = [] } = useAdmissionNotes(activeAdmission?.id ?? null);
-  const { data: decisionLog = [] } = useAdmissionDecisionLog(activeAdmission?.id ?? null);
-  const addNoteMutation = useAddAdmissionNote(activeAdmission?.id ?? null);
 
   const hasSelection = selectedIds.length > 0;
   const selectedRows = useMemo(
@@ -120,6 +98,58 @@ export function ApplicationManagementPage() {
     [bulkStatus, selectedRows],
   );
   const blockedTransitionCount = selectedRows.length - eligibleSelectedIds.length;
+
+  function formatMoney(value: number | undefined): string {
+    return new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value ?? 0);
+  }
+
+  function printApplication(item: AdmissionRecord): void {
+    const popup = window.open("", "_blank", "width=1000,height=800");
+    if (!popup) {
+      return;
+    }
+    popup.document.write(`
+      <html>
+        <head>
+          <title>Application ${item.application_number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 28px; color: #102236; }
+            h1 { margin-bottom: 4px; }
+            .school-meta { margin-bottom: 18px; color: #254b72; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #d2deed; padding: 9px; text-align: left; }
+            th { width: 34%; background: #f2f8ff; }
+            .footer { margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+            .sig { border-top: 1px solid #333; padding-top: 8px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <h1>Sunrise Public School</h1>
+          <div class="school-meta">123 Education Street, Bengaluru, Karnataka 560001 | +91 80 1234 5678</div>
+          <h2>Admission Application</h2>
+          <table>
+            <tr><th>Application Number</th><td>${item.application_number}</td></tr>
+            <tr><th>Student Name</th><td>${item.student_name}</td></tr>
+            <tr><th>Class / Grade</th><td>${item.class_name ?? "-"}</td></tr>
+            <tr><th>Email</th><td>${item.email ?? "-"}</td></tr>
+            <tr><th>Contact Number</th><td>${item.contact_number ?? "-"}</td></tr>
+            <tr><th>Status</th><td>${item.status}</td></tr>
+            <tr><th>Total Fee</th><td>Rs. ${formatMoney(item.fee_total)}</td></tr>
+            <tr><th>Paid Fee</th><td>Rs. ${formatMoney(item.fee_paid)}</td></tr>
+            <tr><th>Pending Fee</th><td>Rs. ${formatMoney(item.fee_pending)}</td></tr>
+          </table>
+          <div class="footer">
+            <div class="sig">Date: ${new Date().toLocaleDateString()}</div>
+            <div class="sig">Student Signature</div>
+            <div class="sig">Parent Signature</div>
+          </div>
+        </body>
+      </html>
+    `);
+    popup.document.close();
+    popup.focus();
+    popup.print();
+  }
 
   return (
     <main className="container page-stack">
@@ -188,10 +218,6 @@ export function ApplicationManagementPage() {
             items={tableItems}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
-            onOpenNotes={(item) => {
-              setActiveAdmission(item);
-              setNoteText("");
-            }}
             onUpdateRow={(item) => {
               setEditAdmission(item);
               setEditStudentName(item.student_name);
@@ -233,78 +259,10 @@ export function ApplicationManagementPage() {
                 setBulkFeedback(`Document download failed. ${mapApiError(error).message}`);
               }
             }}
+            onPrintApplication={printApplication}
           />
         </div>
       </section>
-
-      {activeAdmission && (
-        <section className="panel notes-panel">
-          <h2>Note History: {activeAdmission.application_number}</h2>
-          {notes.length === 0 ? <p>No notes yet.</p> : null}
-          {notes.map((note, index) => (
-            <article key={`${note.timestamp}-${index}`} className="note-item">
-              <strong>{note.author}</strong>
-              <p>{note.note}</p>
-              <small>{note.timestamp}</small>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingNoteIndex(index);
-                    setEditingNoteText(note.note);
-                  }}
-                >
-                  Edit Note
-                </button>
-              </div>
-            </article>
-          ))}
-          <div className="toolbar">
-            <input
-              type="text"
-              placeholder="Add a decision or review note"
-              value={noteText}
-              onChange={(event) => setNoteText(event.target.value)}
-            />
-            <button
-              type="button"
-              disabled={!noteText.trim() || addNoteMutation.isPending}
-              onClick={() => {
-                addNoteMutation.mutate(
-                  { note: noteText.trim(), author: "admin" },
-                  {
-                    onSuccess: () => {
-                      setNoteText("");
-                    },
-                  },
-                );
-              }}
-            >
-              Add Note
-            </button>
-            <button type="button" onClick={() => setActiveAdmission(null)}>
-              Close
-            </button>
-          </div>
-
-          <h3>Decision Audit Log</h3>
-          {decisionLog.length === 0 ? <p>No decision transitions recorded yet.</p> : null}
-          {decisionLog.map((entry, index) => (
-            <article key={`${entry.timestamp}-${index}`} className="note-item">
-              <strong>
-                {entry.from_status}
-                {" -> "}
-                {entry.to_status}
-              </strong>
-              <p>
-                Actor: {entry.actor} | Source: {entry.source}
-              </p>
-              <p>{entry.reason || "No reason provided"}</p>
-              <small>{entry.timestamp}</small>
-            </article>
-          ))}
-        </section>
-      )}
 
       {editAdmission ? (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit admission record">
@@ -364,55 +322,6 @@ export function ApplicationManagementPage() {
         </div>
       ) : null}
 
-      {activeAdmission && editingNoteIndex !== null ? (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit admission note">
-          <section className="panel modal-panel small">
-            <h2>Edit Note</h2>
-            <textarea
-              rows={4}
-              value={editingNoteText}
-              onChange={(event) => setEditingNoteText(event.target.value)}
-            />
-            <div className="toolbar">
-              <button
-                type="button"
-                disabled={!editingNoteText.trim() || updateNoteMutation.isPending}
-                onClick={() => {
-                  const updatedNotes = notes.map((note, index) =>
-                    index === editingNoteIndex ? { ...note, note: editingNoteText.trim() } : note,
-                  );
-                  updateNoteMutation.mutate(
-                    {
-                      itemId: activeAdmission.id,
-                      notesJson: JSON.stringify(updatedNotes),
-                    },
-                    {
-                      onSuccess: () => {
-                        setEditingNoteIndex(null);
-                        setEditingNoteText("");
-                      },
-                      onError: (error) => {
-                        setBulkFeedback(`Note update failed. ${mapApiError(error).message}`);
-                      },
-                    },
-                  );
-                }}
-              >
-                Save Note
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingNoteIndex(null);
-                  setEditingNoteText("");
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
     </main>
   );
 }

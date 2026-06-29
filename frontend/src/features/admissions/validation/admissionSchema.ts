@@ -15,6 +15,21 @@ function hasMinAge(dobValue: string): boolean {
   return age >= MIN_AGE_YEARS;
 }
 
+function parseIndianAmount(value: unknown): number {
+  if (typeof value === "number") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const normalized = value.replace(/,/g, "").trim();
+    if (!normalized) {
+      return 0;
+    }
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : Number.NaN;
+  }
+  return Number.NaN;
+}
+
 export const admissionSchema = z
   .object({
     student_name: z
@@ -50,20 +65,19 @@ export const admissionSchema = z
       .max(20, "Contact number is too long")
       .regex(/^[+0-9()\-\s]+$/, "Contact number format is invalid"),
     email: z.string().trim().email("Email format is invalid"),
-    fee_total: z.coerce.number().min(0, "Total fee must be zero or more"),
-    fee_paid: z.coerce.number().min(0, "Paid fee must be zero or more"),
-    fee_pending: z.coerce.number().min(0, "Pending fee must be zero or more"),
+    fee_total: z.preprocess(parseIndianAmount, z.number().min(0, "Total fee must be zero or more")),
+    fee_paid: z.preprocess(parseIndianAmount, z.number().min(0, "Paid fee must be zero or more")),
+    fee_pending: z.preprocess(parseIndianAmount, z.number().min(0, "Pending fee must be zero or more")),
     document: z
       .custom<FileList | undefined>((value) => value === undefined || value instanceof FileList)
       .optional()
-      .refine((fileList) => !fileList || fileList.length <= 1, "Only one document can be uploaded")
       .refine(
-        (fileList) => !fileList || fileList.length === 0 || ALLOWED_DOCUMENT_TYPES.includes(fileList[0].type),
-        "Document must be a PDF, PNG, or JPEG file",
+        (fileList) => !fileList || Array.from(fileList).every((file) => ALLOWED_DOCUMENT_TYPES.includes(file.type)),
+        "Each document must be a PDF, PNG, or JPEG file",
       )
       .refine(
-        (fileList) => !fileList || fileList.length === 0 || fileList[0].size <= MAX_DOCUMENT_BYTES,
-        "Document size must be 5MB or less",
+        (fileList) => !fileList || Array.from(fileList).every((file) => file.size <= MAX_DOCUMENT_BYTES),
+        "Each document must be 5MB or less",
       ),
   })
   .superRefine((values, ctx) => {
