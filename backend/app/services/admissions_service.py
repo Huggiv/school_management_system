@@ -136,55 +136,61 @@ class AdmissionsService(CRUDService):
         )
         return {"items": items, "page": page, "size": size, "total": total}
 
-    def report_metrics(self, db: Session) -> dict[str, Any]:
-        year_rows = (
-            db.execute(
-                select(
-                    func.extract("year", Admission.created_at).label("year"),
-                    func.count(Admission.id).label("count"),
-                )
-                .group_by(func.extract("year", Admission.created_at))
-                .order_by(func.extract("year", Admission.created_at))
-            )
-            .all()
-        )
+    def report_metrics(self, db: Session, academic_year: int | None = None) -> dict[str, Any]:
+        base_query = select(Admission)
+        if academic_year:
+            base_query = base_query.where(func.extract("year", Admission.created_at) == academic_year)
+
+        scoped_subquery = base_query.subquery()
+
+        total_applications = db.scalar(select(func.count()).select_from(scoped_subquery)) or 0
+        accepted_count = db.scalar(
+            select(func.count())
+            .select_from(scoped_subquery)
+            .where(scoped_subquery.c.status == AdmissionStatus.ACCEPTED.value)
+        ) or 0
+        pending_count = db.scalar(
+            select(func.count())
+            .select_from(scoped_subquery)
+            .where(scoped_subquery.c.status.in_([AdmissionStatus.PENDING.value, AdmissionStatus.UNDER_REVIEW.value]))
+        ) or 0
 
         grade_rows = (
             db.execute(
-                select(Admission.class_name, func.count(Admission.id).label("count"))
-                .where(Admission.class_name.is_not(None))
-                .group_by(Admission.class_name)
-                .order_by(func.count(Admission.id).desc())
+                select(scoped_subquery.c.class_name, func.count(scoped_subquery.c.id).label("count"))
+                .where(scoped_subquery.c.class_name.is_not(None))
+                .group_by(scoped_subquery.c.class_name)
+                .order_by(func.count(scoped_subquery.c.id).desc())
             )
             .all()
         )
 
-        status_rows = (
+        gender_rows = (
             db.execute(
-                select(Admission.status, func.count(Admission.id).label("count"))
-                .group_by(Admission.status)
-                .order_by(func.count(Admission.id).desc())
+                select(scoped_subquery.c.gender, func.count(scoped_subquery.c.id).label("count"))
+                .where(scoped_subquery.c.gender.is_not(None))
+                .group_by(scoped_subquery.c.gender)
+                .order_by(func.count(scoped_subquery.c.id).desc())
             )
             .all()
         )
 
         return {
-            "yearly": [
-                {"year": int(row.year), "count": int(row.count)}
-                for row in year_rows
-                if row.year is not None
-            ],
+            "academic_year": academic_year,
+            "kpis": {
+                "applications": int(total_applications),
+                "accepted": int(accepted_count),
+                "pending": int(pending_count),
+            },
             "by_grade": [
                 {"grade": str(row.class_name), "count": int(row.count)}
                 for row in grade_rows
                 if row.class_name
             ],
-            "by_status": [
-                {
-                    "status": row.status.value if hasattr(row.status, "value") else str(row.status),
-                    "count": int(row.count),
-                }
-                for row in status_rows
+            "by_gender": [
+                {"gender": str(row.gender), "count": int(row.count)}
+                for row in gender_rows
+                if row.gender
             ],
         }
 

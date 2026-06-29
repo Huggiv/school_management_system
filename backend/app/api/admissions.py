@@ -55,10 +55,11 @@ def list_admissions_management(
 
 @router.get("/reports")
 def admission_reports(
+    academic_year: int | None = Query(default=None, ge=2000),
     _: Any = Depends(require_roles(UserRole.ADMINISTRATOR, UserRole.PRINCIPAL)),
     db: Session = Depends(get_db_session),
 ) -> dict[str, Any]:
-    return service.report_metrics(db)
+    return service.report_metrics(db, academic_year=academic_year)
 
 
 @router.patch("/bulk-status")

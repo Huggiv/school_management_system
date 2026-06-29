@@ -12,6 +12,7 @@ class Admission(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     application_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     student_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    gender: Mapped[str | None] = mapped_column(String(32), nullable=True)
     class_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     contact_number: Mapped[str | None] = mapped_column(String(32), nullable=True)

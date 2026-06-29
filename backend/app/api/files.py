@@ -21,6 +21,17 @@ def upload_file(
     return {"path": relative_path}
 
 
+@router.post("/upload-bundle")
+def upload_file_bundle(
+    student_key: str = Query(..., min_length=1),
+    category: str = Query(default="general"),
+    files: list[UploadFile] = File(...),
+    _: object = Depends(require_roles(UserRole.ADMINISTRATOR, UserRole.PRINCIPAL, UserRole.TEACHER, UserRole.STUDENT)),
+) -> dict[str, str]:
+    relative_path = storage_service.save_upload_bundle(files, category=category, student_key=student_key)
+    return {"path": relative_path}
+
+
 @router.get("/download/{relative_path:path}")
 def download_file(
     relative_path: str,
