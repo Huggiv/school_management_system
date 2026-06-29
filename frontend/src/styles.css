@@ -356,7 +356,7 @@ a {
 .form-submit-row {
   grid-column: 1 / -1;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .form-submit-row button {
@@ -486,6 +486,12 @@ a {
   color: #244a84;
 }
 
+.fee-pending-highlight {
+  font-weight: 700;
+  color: #a41217;
+  background: #fff0f0;
+}
+
 .grid-row-actions {
   display: flex;
   gap: 0.35rem;
@@ -531,6 +537,115 @@ a {
   font-size: 0.85rem;
 }
 
+.reports-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.field-wrap.inline {
+  display: inline-grid;
+}
+
+.dashboard-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.chart-panel h2 {
+  margin-top: 0;
+}
+
+.grade-bar-plot {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.grade-bar-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 120px) 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grade-label,
+.grade-value {
+  font-size: 0.84rem;
+}
+
+.grade-bar-track {
+  height: 12px;
+  border-radius: 999px;
+  background: #e4edf8;
+  overflow: hidden;
+}
+
+.grade-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0c5f81, #2a9d8f);
+}
+
+.gender-pie-wrap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.gender-pie {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+
+.gender-legend {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.gender-legend-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.gender-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.gender-legend-dot.dot-0 {
+  background: #0c5f81;
+}
+
+.gender-legend-dot.dot-1 {
+  background: #2a9d8f;
+}
+
+.gender-legend-dot.dot-2 {
+  background: #f4a261;
+}
+
+.gender-legend-dot.dot-3 {
+  background: #e76f51;
+}
+
+.gender-legend-dot.dot-4 {
+  background: #7b8ac9;
+}
+
+.gender-legend-dot.dot-5 {
+  background: #8d6cab;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -555,6 +670,13 @@ a {
   border-radius: 8px;
   padding: 0.65rem;
   resize: vertical;
+}
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .note-item {
