@@ -16,6 +16,20 @@ const ADMIN_ADMISSION_ACTIONS = [
   { to: "/admission/reports", label: "Reports" },
 ];
 
+const MANAGEMENT_ACTIONS = [
+  { to: "/management", label: "Overview" },
+  { to: "/management/users", label: "Users" },
+  { to: "/management/teachers", label: "Teachers" },
+  { to: "/management/student-parents", label: "Student Parents" },
+  { to: "/management/subjects", label: "Subjects" },
+  { to: "/management/exam-sessions", label: "Exam Sessions" },
+  { to: "/management/exam-subjects", label: "Exam Subjects" },
+  { to: "/management/exam-results", label: "Exam Results" },
+  { to: "/management/fee-structures", label: "Fee Structures" },
+  { to: "/management/student-fee-ledgers", label: "Student Ledgers" },
+  { to: "/management/fee-payments", label: "Fee Payments" },
+];
+
 export function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -63,6 +77,26 @@ export function Navbar() {
               </button>
               <div className="action-dropdown-menu" role="menu" aria-label="Admission actions menu">
                 {admissionActions.map((item) => (
+                  <NavLink
+                    className="action-dropdown-item"
+                    key={item.to}
+                    onClick={() => setOpen(false)}
+                    to={item.to}
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {isAuthenticated && isAdminOpsUser ? (
+            <div className="action-dropdown">
+              <button className="nav-link action-dropdown-trigger" type="button">
+                Management
+              </button>
+              <div className="action-dropdown-menu" role="menu" aria-label="Management actions menu">
+                {MANAGEMENT_ACTIONS.map((item) => (
                   <NavLink
                     className="action-dropdown-item"
                     key={item.to}

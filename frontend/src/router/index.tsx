@@ -10,8 +10,19 @@ import { NewAdmissionPage } from "@/features/admissions/pages/NewAdmissionPage";
 import { ReviewQueuePage } from "@/features/admissions/pages/ReviewQueuePage";
 import { AssignmentsPage } from "@/features/assignments/AssignmentsPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { ExamResultsPage } from "@/features/exams/pages/ExamResultsPage";
+import { ExamSessionsPage } from "@/features/exams/pages/ExamSessionsPage";
+import { ExamSubjectsPage } from "@/features/exams/pages/ExamSubjectsPage";
+import { FeePaymentsPage } from "@/features/fees/pages/FeePaymentsPage";
+import { FeeStructuresPage } from "@/features/fees/pages/FeeStructuresPage";
+import { StudentFeeLedgersPage } from "@/features/fees/pages/StudentFeeLedgersPage";
 import { GradePage } from "@/features/grades/GradePage";
 import { HomePage } from "@/features/home/HomePage";
+import { ManagementHomePage } from "@/features/management/pages/ManagementHomePage";
+import { StudentParentLinksPage } from "@/features/management/pages/StudentParentLinksPage";
+import { TeacherManagementPage } from "@/features/management/pages/TeacherManagementPage";
+import { UsersManagementPage } from "@/features/management/pages/UsersManagementPage";
+import { SubjectsPage } from "@/features/subjects/pages/SubjectsPage";
 import { AboutPage } from "@/pages/AboutPage";
 import { ContactPage } from "@/pages/ContactPage";
 import { ProfilePage } from "@/pages/ProfilePage";
@@ -144,6 +155,18 @@ export function AppRouter() {
           <Route path="/admission/review" element={<ReviewQueuePage />} />
           <Route path="/admission/history" element={<DecisionHistoryPage />} />
           <Route path="/admission/reports" element={<AdmissionReportsPage />} />
+
+          <Route path="/management" element={<ManagementHomePage />} />
+          <Route path="/management/users" element={<UsersManagementPage />} />
+          <Route path="/management/teachers" element={<TeacherManagementPage />} />
+          <Route path="/management/student-parents" element={<StudentParentLinksPage />} />
+          <Route path="/management/subjects" element={<SubjectsPage />} />
+          <Route path="/management/exam-sessions" element={<ExamSessionsPage />} />
+          <Route path="/management/exam-subjects" element={<ExamSubjectsPage />} />
+          <Route path="/management/exam-results" element={<ExamResultsPage />} />
+          <Route path="/management/fee-structures" element={<FeeStructuresPage />} />
+          <Route path="/management/student-fee-ledgers" element={<StudentFeeLedgersPage />} />
+          <Route path="/management/fee-payments" element={<FeePaymentsPage />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["administrator", "principal"]} />}>
